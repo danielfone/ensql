@@ -25,6 +25,17 @@ Ensql.query('select %{greeting} as greeting', greeting: "hello world")
 # => [{"greeting"=>"hello world"}]
 ```
 
+Arrays of hashes can be interpolated as multiple rows:
+
+```ruby
+attrs = [
+    { a: 1, b: 2 },
+    { a: 3, b: 4 },
+]
+# Inserts two rows
+Ensql.query("insert into my_table (a, b) values %{attrs(a, b)}", attrs: attrs)
+```
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.

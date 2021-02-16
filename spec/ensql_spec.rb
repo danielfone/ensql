@@ -18,4 +18,20 @@ RSpec.describe Ensql do
       { 'column1' => 'hello', 'column2' => 2 },
     ]
   end
+
+  it 'inserts multiple rows of values' do
+    attrs = [
+      { a: 1, b: 2 },
+      { a: 3, b: 4 },
+    ]
+    Ensql.query('create table test (a, b)')
+    Ensql.query("insert into test (a, b) values %{attrs(a, b)}", attrs: attrs)
+    result = Ensql.query("select * from test")
+    expect(result).to eq [{
+      "a" => 1, "b" => 2,
+    }, {
+      "a" => 3, "b" => 4,
+    }]
+  end
+
 end
