@@ -15,7 +15,12 @@ Or install it manually with:
 
 ## Usage
 
-Ensql uses your existing ActiveRecord connection.
+By default `Ensql` looks for an existing ActiveRecord connection when a query is
+made. You can also use Sequel instead.
+
+```ruby
+Ensql.use(:sequel) # Uses the first Sequel connection instead
+```
 
 Parameters will be safely interpolated into the supplied query before the query
 is executed. The results are returned as an array of hashes with strings as keys.

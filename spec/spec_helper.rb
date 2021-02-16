@@ -18,4 +18,9 @@ RSpec.configure do |config|
 
   config.order = :random
 
+  config.before(:suite) do
+    ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+    Ensql.use(:active_record)
+  end
+
 end

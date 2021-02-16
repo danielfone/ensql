@@ -13,5 +13,5 @@ gem "simplecov", "~> 0.21.2"
 
 # Database adapters
 gem "activerecord", "~> 6.1"
-#gem "sequel", "~> 5.41"
+gem "sequel", "~> 5.41"
 gem "sqlite3", "~> 1.4"
