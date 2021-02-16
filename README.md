@@ -1,28 +1,29 @@
 # Ensql
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/ensql`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+Ensql lets you write SQL for your application the safe and simple way. Ditch
+your ORM and embrace the power and simplicity of writing plain SQL again.
 
 ## Installation
 
-Add this line to your application's Gemfile:
+Add this gem to your Gemfile by running:
 
-```ruby
-gem 'ensql'
-```
+    $ bundle add ensql
 
-And then execute:
-
-    $ bundle install
-
-Or install it yourself as:
+Or install it manually with:
 
     $ gem install ensql
 
 ## Usage
 
-TODO: Write usage instructions here
+Ensql uses your existing ActiveRecord connection.
+
+Parameters will be safely interpolated into the supplied query before the query
+is executed. The results are returned as an array of hashes with strings as keys.
+
+```ruby
+Ensql.query('select %{greeting} as greeting', greeting: "hello world")
+# => [{"greeting"=>"hello world"}]
+```
 
 ## Development
 
