@@ -17,18 +17,15 @@ module Ensql
   #
   # Returns an array of hashes.
   def self.query(sql, params={})
-    adapter.execute(interpolate(sql, params.transform_keys(&:to_s)))
+    adapter.execute(interpolate(sql, params))
   end
 
   def self.interpolate(sql, params)
+    params = params.transform_keys(&:to_s)
     sql
+      .gsub(/%{(\w+)\((.+)\)}/m) { Array(params.fetch($1)).map { |attrs| "(#{interpolate($2, Hash(attrs))})" }.join(', ') } # ó_O
+      .gsub(/%{(\w+),}/) { Array(params.fetch($1)).map(&adapter.method(:quote)).join(', ') }
       .gsub(/%{(\w+)}/) { adapter.quote params[$1] }
-      .gsub(/%{(\w+)\((.+)\)}/) { params[$1].map { |attrs| sql_row(attrs, $2.split(', '))}.join(', ') } # ó_O
-  end
-
-  # We pay per line right?
-  def self.sql_row(params, columns)
-    "(#{params.fetch_values(*columns).map(&adapter.method(:quote)).join(', ')})"
   end
 
   def self.adapter

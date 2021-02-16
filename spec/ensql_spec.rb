@@ -17,19 +17,25 @@ RSpec.describe Ensql do
     ]
   end
 
-  it 'inserts multiple rows of values' do
+  it 'inserts multiple rows of values with %{attrs(%{a}, %{b})}' do
     attrs = [
       { 'a' => 1, 'b' => 2 },
       { 'a' => 3, 'b' => 4 },
     ]
     Ensql.query('create table test (a, b)')
-    Ensql.query("insert into test (a, b) values %{attrs(a, b)}", attrs: attrs)
+    Ensql.query("insert into test (a, b) values %{attrs(%{a}, %{b})}", attrs: attrs)
     result = Ensql.query("select * from test")
     expect(result).to eq [{
       "a" => 1, "b" => 2,
     }, {
       "a" => 3, "b" => 4,
     }]
+  end
+
+  it 'interpolates lists with %{param,}' do
+    a = [1, "Hi"]
+    result = Ensql.query("values (%{a,})", a: a)
+    expect(result).to eq [{ "column1" => 1, "column2" => "Hi" }]
   end
 
   it 'can switch adapters' do
