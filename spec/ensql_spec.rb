@@ -21,8 +21,8 @@ RSpec.describe Ensql do
 
   it 'inserts multiple rows of values' do
     attrs = [
-      { a: 1, b: 2 },
-      { a: 3, b: 4 },
+      { 'a' => 1, 'b' => 2 },
+      { 'a' => 3, 'b' => 4 },
     ]
     Ensql.query('create table test (a, b)')
     Ensql.query("insert into test (a, b) values %{attrs(a, b)}", attrs: attrs)
