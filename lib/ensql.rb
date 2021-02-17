@@ -25,7 +25,7 @@ module Ensql
     sql
       .gsub(/%{(\w+)\((.+)\)}/m) { Array(params.fetch($1)).map { |attrs| "(#{interpolate($2, Hash(attrs))})" }.join(', ') } # ó_O
       .gsub(/%{(\w+),}/) { Array(params.fetch($1)).map(&adapter.method(:quote)).join(', ') }
-      .gsub(/%{(\w+)}/) { adapter.quote params[$1] }
+      .gsub(/%{(\w+)}/) { adapter.quote params.fetch($1) }
   end
 
   def self.adapter
