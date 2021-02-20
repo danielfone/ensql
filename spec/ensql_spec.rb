@@ -1,79 +1,109 @@
 # frozen_string_literal: true
-
-require 'active_record'
-require 'sequel'
+require 'ensql'
+require 'ensql/sequel_adapter'
+require 'ensql/active_record_adapter'
 
 RSpec.describe Ensql do
+
+  before(:context) do
+    Sequel::DATABASES.clear
+    Sequel.connect('sqlite:/')
+  end
+
+  before do
+    Ensql.adapter = Ensql::SequelAdapter
+    Ensql.run 'create table if not exists test (a, b)'
+    Ensql.run 'delete from test'
+  end
+
+  it "loads, interpolates, and executes SQL" do
+    attrs = [
+      { 'a' => 1, 'b' => 2 },
+      { 'a' => 3, 'b' => 4 },
+    ]
+    Ensql.sql_path = 'spec/sql'
+    Ensql.load_sql(:multi_insert_test, attrs: attrs).run
+    Ensql.run("insert into test (a, b) values (%{a}, %{b})", a: 5, b: 6)
+    expect(Ensql.sql("select count(*) from test").first_field).to eq 3
+    expect(Ensql.sql("select * from test where a > %{a}", a: 1).rows).to eq [{
+      "a" => 3, "b" => 4,
+    }, {
+      "a" => 5, "b" => 6,
+    }]
+  end
+
+  it 'can use Sequel or ActiveRecord' do
+    Ensql.adapter = Ensql::SequelAdapter
+    expect { Ensql.run('select * from not_a_table') }.to raise_error Sequel::DatabaseError
+
+    ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+    Ensql.adapter = Ensql::ActiveRecordAdapter
+    expect { Ensql.run('select * from not_a_table') }.to raise_error ActiveRecord::StatementInvalid
+  end
+
+  describe '.sql' do
+    it 'instantiates a new SQL object' do
+      expect(Ensql.sql('select %{a}', a: 1).to_sql).to eq 'select 1'
+    end
+  end
+
+  describe '.load_sql' do
+    before { Ensql.sql_path = 'spec/sql' }
+
+    it 'interpolates into the sql at the configured path' do
+      expect(Ensql.load_sql(:select_some, limit: 2).to_sql).to eq "select * from test limit 2\n"
+    end
+
+    it 'fails clearly for missing files' do
+      expect { Ensql.load_sql(:missing_file) }.to raise_error including('spec/sql/missing_file.sql')
+    end
+  end
+
+  describe '.run' do
+    it 'executes the interpolated SQL' do
+      expect {
+        Ensql.run 'insert into test values (%{a}, %{b})', a: 'foo', b: 'bar'
+      }.to change {
+        Ensql.sql("select b from test where a = 'foo'").first_field
+      }.from(nil).to('bar')
+    end
+
+    it 'returns nil' do
+      expect(Ensql.run('select 1')).to eq nil
+    end
+  end
+
+  describe '.adapter' do
+
+    it 'autodetects Sequel and ActiveRecord' do
+      Ensql.adapter = nil
+      expect(Ensql.adapter).to eq Ensql::SequelAdapter
+      hide_const 'Sequel'
+      Ensql.adapter = nil
+      expect(Ensql.adapter).to eq Ensql::ActiveRecordAdapter
+    end
+
+    it 'raises if autodetection fails' do
+      Ensql.adapter = nil
+      hide_const 'Sequel'
+      hide_const 'ActiveRecord'
+      expect { Ensql.adapter }.to raise_error Ensql::Error, including("Couldn't autodetect an adapter")
+    end
+
+    it 'can be manually set' do
+      expect { Ensql.adapter = :foo }
+        .to change { Ensql.adapter }.to :foo
+    end
+  end
 
   it "has a version number" do
     expect(Ensql::VERSION).not_to be nil
   end
 
-  it "runs a query with interpolated variables" do
-    result = Ensql.query("values (%{text}, %{one}), (%{text}, %{one} + 1); ", one: 1, text: "hello")
-    expect(result).to eq [
-      { 'column1' => 'hello', 'column2' => 1 },
-      { 'column1' => 'hello', 'column2' => 2 },
-    ]
-  end
-
-  it 'inserts multiple rows of values with %{attrs(%{a}, %{b})}' do
-    attrs = [
-      { 'a' => 1, 'b' => 2 },
-      { 'a' => 3, 'b' => 4 },
-    ]
-    Ensql.query('create table test (a, b)')
-    Ensql.query("insert into test (a, b) values %{attrs(%{a}, %{b})}", attrs: attrs)
-    result = Ensql.query("select * from test")
-    expect(result).to eq [{
-      "a" => 1, "b" => 2,
-    }, {
-      "a" => 3, "b" => 4,
-    }]
-  end
-
-  it 'interpolates lists with %{param,}' do
-    a = [1, "Hi"]
-    result = Ensql.query("values (%{a,})", a: a)
-    expect(result).to eq [{ "column1" => 1, "column2" => "Hi" }]
-  end
-
-  it 'can switch adapters' do
-    Sequel.connect('sqlite:/')
-    Ensql.use(:sequel)
-    expect { Ensql.query('select * from test') }.to raise_error Sequel::DatabaseError
-
-    ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
-    Ensql.use(:active_record)
-    expect { Ensql.query('select * from test') }.to raise_error ActiveRecord::StatementInvalid
-  end
-
-  shared_examples_for "an adapter" do |adapter|
-    it 'execute queries' do
-      expect(adapter.execute("select 1 as one")).to eq [{"one" => 1}]
-    end
-
-    it 'quotes values', :aggregate_failures do
-      expect(adapter.quote('hi')).to eq "'hi'"
-    end
-  end
-
-  describe 'ActiveRecordAdapter' do
-    before do
-      require 'active_record'
-      ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
-    end
-
-    it_behaves_like "an adapter", Ensql::ActiveRecordAdapter
-  end
-
-  describe 'SequelAdapter' do
-    before do
-      require 'sequel'
-      Sequel.connect('sqlite:/')
-    end
-
-    it_behaves_like "an adapter", Ensql::SequelAdapter
+  describe 'v2' do
+    pending 'uses pg directly'
+    pending 'streams results'
+    pending 'can be configured to use bind variables'
   end
 
 end

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 require 'support/coverage'
 
-require "ensql"
 
 ENV['TZ'] = 'UTC'
 
@@ -17,10 +16,5 @@ RSpec.configure do |config|
   end
 
   config.order = :random
-
-  config.before(:suite) do
-    ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
-    Ensql.use(:active_record)
-  end
 
 end
