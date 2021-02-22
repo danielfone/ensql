@@ -3,46 +3,93 @@
 require_relative "ensql/version"
 require_relative "ensql/sql"
 
+#
+# Primary interface for loading, interpolating and executing SQL statements
+# using your preferred database connection. See {.sql} for interpolation details.
+#
+# @example
+#     # Run adhoc statements
+#     Ensql.run("SET TIME ZONE 'UTC'")
+#
+#     # Run adhoc D/U/I statements and get the affected row count
+#     Ensql.sql('DELETE FROM logs WHERE timestamp < %{expiry}', expiry: 1.month.ago).count # => 100
+#
+#     # Organise your SQL and fetch results as convenient Ruby primitives
+#     Ensql.sql_path = 'app/sql'
+#     Ensql.load_sql('customers/revenue_report', params).rows # => [{ "customer_id" => 100, "revenue" => 1000}, … ]
+#
+#     # Easily retrive results in alternative dimensions
+#     Ensql.sql('select count(*) from users').first_field # => 100
+#     Ensql.sql('select id from users').first_column # => [1, 2, 3, …]
+#     Ensql.sql('select * from users where id = %{id}', id: 1).first_row # => { "id" => 1, "email" => "test@example.com" }
+#
 module Ensql
+  # Wrapper for errors raised by Ensql
   class Error < StandardError; end
 
   class << self
-    # Convenience method for wrapping a plain SQL string. A useful shortcut for
-    # SQL framement interpolation when coupled with `%{!param}` e.g.
-    # `Ensql.load('active_customers', order: Ensql.sql('age desc')`
-    #
-    # Returns a Ensql::SQL object.
+
+    # (see SQL)
+    # @return [Ensql::SQL] SQL statement
     def sql(sql, params={})
       SQL.new(sql, params)
     end
 
-    # Set the path to search for *.sql queries in, defaults to ./sql/
-    attr_writer :sql_path
-    def sql_path
-      @sql_path ||= File.join(Dir.pwd, 'sql')
-    end
-
-    # Load SQL from a path within the configured queries path. For example, if
-    # sql_dir is set to './sql/', `load('users/active')`` will read from
-    # './sql/users/active.sql'
+    # Path to search for *.sql queries in, defaults to "sql/". For example, if
+    # {sql_path} is set to 'app/queries', `load_sql('users/active')` will read
+    # 'app/queries/users/active.sql'.
+    # @see .load_sql
     #
-    # Returns a Ensql::SQL object
+    # @example
+    #   Ensql.sql_path = Rails.root.join('app/queries')
+    #
+    def sql_path
+      @sql_path ||= 'sql'
+    end
+    attr_writer :sql_path
+
+    # Load SQL from a file within {sql_path}. This is the recommended way to
+    # manage SQL in a non-trivial project. For details of how to write
+    # interpolation placeholders, see {SQL}.
+    #
+    # @see .sql_path=
+    # @return [Ensql::SQL]
+    #
+    # @example
+    #   Ensql.load_sql('users/activity', report_params)
+    #   Ensql.load_sql(:upsert_users, imported_users_attrs)
+    #
     def load_sql(name, params={})
       path = File.join(sql_path, "#{name}.sql")
       SQL.new(File.read(path), params, name)
     end
 
-    # Convenience method
+    # Convenience method to interpolate and run the supplied SQL on the current
+    # adapter.
+    # @return [void]
+    #
+    # @example
+    #   Ensql.run("DELETE FROM users WHERE id = %{id}", id: user.id)
+    #   Ensql.run("ALTER TABLE test RENAME TO old_test")
+    #
     def run(sql, params={})
       SQL.new(sql, params).run
     end
 
-    # Configure the connection adapter being used. The adapter must be required first.
-    attr_writer :adapter
-
+    # Connection adapter to use. Must implement the interface defined in
+    # {Ensql::Adapter}. If not specified, it will try to autoload an adapter
+    # based on the availability of Sequel or ActiveRecord, in that order.
+    #
+    # @example
+    #     require 'sequel'
+    #     Ensql.adapter # => Ensql::SequelAdapter
+    #     Ensql.adapter = Ensql::ActiveRecordAdapter # override adapter
+    #     Ensql.adapter = CustomMSSQLAdapater # supply your own adapter
+    #
     def adapter
       @adapter ||= autoload_adapter
     end
+    attr_writer :adapter
 
   private
 

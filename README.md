@@ -1,15 +1,51 @@
 # Ensql
 
-Ensql lets you write SQL for your application the safe and simple way. Ditch
-your ORM and embrace the power and simplicity of writing plain SQL again.
+Ensql lets you write SQL for your application the safe and simple way. Ditch your ORM and embrace the power and
+simplicity of writing plain SQL again.
 
-Ensql allows you to write exactly the SQL you want and safely interpolate input
-from the application.
+  * **Write exactly the SQL you want.** Don't limit your queries to what's in the Rails docs. Composable scopes and
+    dynamic includes can cripple performance for non-trivial queries. Break through the ORM abstraction and unlock the
+    power of your database with well-structured SQL and modern database features.
 
-    * Keep your SQL in their own files. Just like models or view templates, it makes sense to SQL organise your SQL on its own terms. Storing the queries in their own files encourages better formatted, well commented, literate SQL. It also leverages the syntax highlighting and other editor features associated with SQL syntax. Snippets of HTML scatter through .rb files is an awkward code smell, and SQL is no different.
-    * Do more with your database. Having a place to organise clean and readable SQL encourages you to make the most of it. In every project I've worked on I've been able to replace useful amounts of imperative ruby logic with a declarative SQL query, improving performance and reducing the opportunity for type errors and untested branches.
-    * Safely interpolate user-supplied data. Every web developer knows the risks of SQL injection. Ensql takes a fail-safe approach to interpolation, leveraging the underlying database adapter to turn ruby objects into properly quoted SQL literals. As long as user-supplied input is passed to Ensql as parameters, your queries will be safe and well-formed.
-    * Use your existing database connection. Ensql works on top of ActiveRecord or Sequel so you don't need to manage a separate connection to the database.
+  * **Keep your SQL in its own files.** Just like models or view templates, it makes sense to organise your SQL on its
+    own terms. Storing the queries in their own files encourages better formatted, well commented, literate SQL. It also
+    leverages the syntax highlighting and autocompletion available in your editor. Snippets of HTML scatter through .rb
+    files is an awkward code smell, and SQL is no different.
+
+  * **Do more with your database.** Having a place to organise clean and readable SQL encourages you to make the most of it.
+    In every project I've worked on I've been able to replace useful amounts of imperative ruby logic with a declarative
+    SQL query, improving performance and reducing the opportunity for type errors and untested branches.
+
+  * **Safely interpolate user-supplied data.** Every web developer knows the risks of SQL injection. Ensql takes a
+    fail-safe approach to interpolation, leveraging the underlying database adapter to turn ruby objects into properly
+    quoted SQL literals. As long as user-supplied input is passed as parameters, your queries will be safe and
+    well-formed.
+
+  * **Use your existing database connection.** Ensql works with ActiveRecord or Sequel so you don't need to manage a
+    separate connection to the database.
+
+```ruby
+# Run adhoc statements
+Ensql.run("SET TIME ZONE 'UTC'")
+
+# Run adhoc D/U/I statements and get the affected row count
+Ensql.sql('DELETE FROM logs WHERE timestamp < %{expiry}', expiry: 1.month.ago).count # => 100
+
+# Organise your SQL and fetch results as convenient Ruby primitives
+Ensql.sql_path = 'app/sql'
+Ensql.load_sql('customers/revenue_report', params).rows # => [{ "customer_id" => 100, "revenue" => 1000}, … ]
+
+# Easily retrive results in the simplest shape
+Ensql.sql('SELECT count(*) FROM users').first_field # => 100
+Ensql.sql('SELECT id FROM users').first_column # => [1, 2, 3, …]
+Ensql.sql('SELECT * FROM users WHERE id = %{id}', id: 1).first_row # => { "id" => 1, "email" => "test@example.com" }
+
+# Compose multiple queries with fragment interpolation
+all_results     = Ensql.load_sql('results/all', user_id: user.id)
+current_results = Ensql.load_sql('results/page', results: all_results, page: 2)
+total           = Ensql.load_sql('count', subquery: all_results)
+result = { data: current_results.rows, total: total.first_field }
+```
 
 ## Installation
 
@@ -23,94 +59,125 @@ Or install it manually with:
 
 ## Usage
 
-By default `Ensql` looks for an existing ActiveRecord connection when a query is
-made. You can also use Sequel instead.
+Typically, you don't need to configure anything. Ensql will look for Sequel or ActiveRecord (in that order) and load the
+appropriate adapter. You can override this if you need to, or configure your own adapter. See {Ensql::Adapter} for
+details of the interface.
 
 ```ruby
-Ensql.use(:sequel) # Will use the first Sequel connection instead
-Ensql.use(:active_record) # Switch back to ActiveRecord::Base
+Ensql.adapter = Ensql::ActiveRecordAdapter # Will use ActiveRecord instead
 ```
 
-SQL can be supplied directly or read from a file.
+SQL can be supplied directly or read from a file. You're encouraged to organise all but the most trivial statements in
+their own *.sql files, for the reasons outlined above. You can organise them in whatever way makes most sense for your
+project, but I've found sorting them into directories based on their purpose works well. For example:
+
+    app/sql
+    ├── analytics
+    │   └── results.sql
+    ├── program_details
+    │   ├── widget_query.sql
+    │   ├── item_query.sql
+    │   ├── organisation_query.sql
+    │   └── test_query.sql
+    ├── reports
+    │   ├── csv_export.sql
+    │   ├── filtered.sql
+    │   └── index.sql
+    ├── redaction.sql
+    ├── count.sql
+    └── set_timeout.sql
+
+### Interpolation
+
+All interpolation is marked by `%{}` placeholders in the SQL. This is the only place that user-supplied input should be
+allowed. Only various forms of literal interpolation are supported - identifier interpolation is not supported at this
+stage.
+
+There are 4 types of interpolation, see {Ensql::SQL} for details.
+
+  1. `%{param}` interpolates a Ruby object as a SQL literal.
+  2. `%{(param)}` expands an array into a list of SQL literals.
+  3. `%{param( nested sql )}` interpolates the nested sql with each hash in an array.
+  4. `%{!sql_param}` only interpolates Ensql::SQL objects as SQL fragments.
 
 ```ruby
-# Load SQL from a configured directory
-Ensql.query_dir = 'app/queries'
-Ensql.load('reports/daily_activity', organisation_id: 1, date: Date.yesterday)
+# Interpolate a literal
+Ensql.sql('SELECT * FROM users WHERE email > %{date}', date: Date.today)
+# SELECT * FROM users WHERE email > '2021-02-22'
 
-# Supply SQL directly. There should NEVER be user-supplied input in the SQL
-Ensql::SQL.new('SELECT * FROM users WHERE last_seen > %{date}', date: Date.yesterday)
+# Interpolate a list
+Ensql.sql('SELECT * FROM users WHERE name IN %{(names)}', names: ['user1', 'user2'])
+# SELECT * FROM users WHERE name IN ('user1', 'user2')
+
+# Interpolate a nested VALUES list
+Ensql.sql('INSERT INTO users (name, created_at) VALUES %{users( %{name}, now() )}',
+  users: [{ name: "Claudia Buss" }, { name: "Lundy L'Anglais" }]
+)
+# INSERT INTO users VALUES ('Claudia Buss', now()), ('Lundy L''Anglais', now())
+
+# Interpolate a SQL fragement
+Ensql.sql('SELECT * FROM users ORDER BY %{!orderby}', orderby: Ensql.sql('name asc'))
+# SELECT * FROM users ORDER BY name asc
 ```
 
-There are 4 types of interpolation:
+Interpolation occurs just before the SQL is executed.
 
-1. Literal `%{param}`
-This will convert the object to a quoted string or numeric literal depending on the class.
+### Results
 
-2. List `%{(param)}`
-This will convert an array to a list of quoted literals. e.g. `[1, "It's fine"]` => `(1, 'It''s fine')` The parameter will be converted to an Array. Empty arrays will be converted to `(NULL)`
+The result of an SQL query will always be a table of rows and columns, and most of the time this is what we want.
+However, sometimes our queries only return a single row, column, or value. For ease-of-use, Ensql supports all 4
+possible access patterns.
 
-3. Nested List `%{param( %{a}, timestamp %{b}, %{c} + 1, cast(%{d} as int[]) )}`
-This takes a Array of parameter Hashes and interpolates the inner SQL for each Hash in the Array. This is primary useful for SQL VALUES clauses.
-
-4. SQL Fragment `%{!sql_param}`
-This will assume the parameter is a SQL fragment and interpolate the input directly without any quoting. The parameter must be an Ensql::SQL object or this will raise an error.
-
-Identifier interpolation is not supported.
-
-Parameters will be safely interpolated into the supplied query before the query
-is executed. The results are returned as an array of hashes with strings as keys.
+1. Table: an array of rows as hashes
+2. Row: a hash of the first row
+3. Column: an array of the first column
+4. Field: an object of the first field
 
 ```ruby
-Ensql.query('select %{greeting} as greeting', greeting: "hello world")
-# => [{"greeting"=>"hello world"}]
+Ensql.sql('SELECT * FROM users').rows # => [{ "id" => 1, …}, {"id" => 2, …}, …]
+Ensql.sql('SELECT count(*) FROM users').first_field # => 100
+Ensql.sql('SELECT id FROM users').first_column # => [1, 2, 3, …]
+Ensql.sql('SELECT * FROM users WHERE id = %{id}', id: 1).first_row # => { "id" => 1, "email" => "test@example.com" }
 ```
 
-Arrays of hashes can be interpolated as multiple rows:
+Depending on the database and adapter, the values will be deserialised into Ruby objects.
 
 ```ruby
-attrs = [
-    { a: 1, b: 2 },
-    { a: 3, b: 4 },
-]
-# Inserts two rows
-Ensql.query("insert into my_table (a, b) values %{attrs(a, b)}", attrs: attrs)
+Ensql.sql("SELECT now() AS now, CAST('[1,2,3]' AS json)", id: 1).first_row
+# => { "now" => 2021-02-23 21:17:28.105537 +1300, "json" => [1, 2, 3] }
 ```
 
-## Things I Don't Like
+Additionally, you can just return the number of rows affected, or nothing at all.
 
-- Interpolation syntax: I'd love to ground this in something more reasonable than
-  ruby's custom sprintf format. Maybe we could relate it to the standard SQL
-  `?`. Maybe we could style it a la pg bind parameters $1, but we'd need to cf
-  with mysql. Maybe we could use typehinting like `%{param:array}`. Nested is ok but messy.
+```ruby
+Ensql.sql('DELETE FROM users WHERE email IS NULL').count # 10
+Ensql.sql('TRUNCATE logs').run # => nil
+Ensql.run('TRUNCATE logs') # same thing
+```
 
-- Interpolation strategy: we could probably simplify and clarify the quoting vs typecasting etc
+## Things To Improve
 
-- Result accessing: there's only 5 possible ways to access results, perhaps we should support them all.
-    - all results as an array of hashes e.g. `select * from users` => `[{…}]`
-    - the first result as a hash e.g. `select * from users where id = %{id} limit 1` => `{…}`
-    - a single column as an array of values e.g. `select id from users` => `[…]`
-    - a single field e.g. `select max(id) from users` => `100`
-    - the number if rows affected in a dui query e.g. `delete from users` => `100`
+- Interpolation syntax. I'd love to ground this in something more reasonable than ruby's custom sprintf format. Maybe we
+  could relate it to the standard SQL `?` or chose an existing named bind parameter format.
 
-- Adapter switching: it can trip you up bad if you're using multiple adapters in
-  your codebase. This is probably rare though. Maybe we should just document
-  this and show how to set up tests.
+- Maybe we could use type hinting like `%{param:pgarray}` to indicated how to serialise the object as a literal.
 
-- SQL organisation: inline strings and constants really defeat the point, even
-  with HEREDOC syntax highlighting. We should probably make it easy to load
-  queries from files. This gives us two ways to load SQL, string or file path.
+- Detecting the database and switching to a db specific adapters. This allows us to be more efficient and optimise some
+  literals in a database specific format, e.g. postgres array literals.
 
-## Roadmap
+- Handling specific connections rather than just grabbing the default.
 
-- Supply specific connections: `Ensql.use(:active_record) { Widget.connection }
-- Manage connections directly: `Ensql.use(:postgres)`
+- Establishing connections directly.
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You'll
+need a running postgres database. You can also run `bin/console` for an interactive prompt that will allow you to
+experiment.
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the
+version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version,
+push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 
 ## Contributing
 

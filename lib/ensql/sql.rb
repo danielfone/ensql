@@ -3,46 +3,103 @@
 require_relative "../ensql"
 
 module Ensql
+  #
+  # Encapsulates a plain-text SQL statement and optional parameters to interpolate. Interpolation is indicated by one
+  # of the four placeholder formats:
+  #
+  # 1. **Literal:** `%{param}`
+  #    - Interpolates `param` as a quoted string or a numeric literal depending on the class.
+  #    - `nil` is interpolated as `'NULL'`.
+  #    - Other objects depend on the database and the adapter, but most (like `Time`) are serialised as a quoted SQL
+  #      string.
+  #
+  # 2. **List Expansion:** `%{(param)}`
+  #    - Expands an array to a list of quoted literals.
+  #    - Mostly useful for `column IN (1,2)` or postgres row literals.
+  #    - Empty arrays are interpolated as `(NULL)` for SQL conformance.
+  #    - The parameter will be converted to an Array.
+  #
+  # 3. **Nested List:** `%{param(nested sql)}`
+  #    - Takes an array of parameter hashes and interpolates the nested SQL for each Hash in the Array.
+  #    - Raises an error if param is nil or a non-hash array.
+  #    - Primary useful for SQL `VALUES ()` clauses.
+  #
+  # 4. **SQL Fragment:** `%{!sql_param}`
+  #    - Interpolates the parameter without quoting, as a SQL fragment.
+  #    - The parameter _must_ be an {Ensql::SQL} object or this will raise an error.
+  #    - `nil` will not be interpolated.
+  #    - Allows composition of SQL via subqueries.
+  #
+  # Any placeholders in the SQL must be present in the params hash or a KeyError will be raised during interpolation.
+  #
+  # @example
+  #   # Interpolate a literal
+  #   Ensql.sql('SELECT * FROM users WHERE email > %{date}', date: Date.today)
+  #   # SELECT * FROM users WHERE email > '2021-02-22'
+  #
+  #   # Interpolate a list
+  #   Ensql.sql('SELECT * FROM users WHERE name IN %{(names)}', names: ['user1', 'user2'])
+  #   # SELECT * FROM users WHERE name IN ('user1', 'user2')
+  #
+  #   # Interpolate a nested VALUES list
+  #   Ensql.sql('INSERT INTO users (name, created_at) VALUES %{users( %{name}, now() )}',
+  #     users: [{ name: "Claudia Buss" }, { name: "Lundy L'Anglais" }]
+  #   )
+  #   # INSERT INTO users VALUES ('Claudia Buss', now()), ('Lundy L''Anglais', now())
+  #
+  #   # Interpolate a SQL fragement
+  #   Ensql.sql('SELECT * FROM users ORDER BY %{!orderby}', orderby: Ensql.sql('name asc'))
+  #   # SELECT * FROM users ORDER BY name asc
+  #
   class SQL
 
+    # @!visibility private
     def initialize(sql, params={}, name='SQL')
       @sql = sql
-      @name = name
+      @name = name.to_s
       @params = params
     end
 
+    # (see Adapter.fetch_rows)
     def rows
       adapter.fetch_rows(to_sql)
     end
 
+    # (see Adapter.fetch_first_row)
     def first_row
       adapter.fetch_first_row(to_sql)
     end
 
+    # (see Adapter.fetch_first_column)
     def first_column
       adapter.fetch_first_column(to_sql)
     end
 
+    # (see Adapter.fetch_first_field)
     def first_field
       adapter.fetch_first_field(to_sql)
     end
 
-    # Execute the query and return the number of rows affected, useful for
-    # DELETE, UPDATE, INSERT, etc.
+    # (see Adapter.fetch_count)
     def count
       adapter.fetch_count(to_sql)
     end
 
-    # Run a query without worrying about the result
+    # (see Adapter.run)
     def run
       adapter.run(to_sql)
       nil
     end
 
+    # (see Adapter.fetch_each_row)
     def each_row(&block)
       adapter.fetch_each_row(to_sql, &block)
     end
 
+    # Interpolate the params into the SQL statement.
+    #
+    # @raise [Ensql::Error] if any param is missing or invalid.
+    # @return [String] a SQL string with parameters interpolated.
     def to_sql
       interpolate(sql, params)
     end
@@ -54,14 +111,8 @@ module Ensql
     NESTED_LIST  = /%{(\w+)\((.+)\)}/m
     LIST         = /%{\((\w+)\)}/
     SQL_FRAGMENT = /%{!(\w+)}/
-    # LITERAL      = /%{([\w]+)(:(\w+))?}/
     LITERAL      = /%{(\w+)}/
 
-    # Want to interpolate a number of things
-    # - literals: this can be typecast and escaped as needed. dumb => to_s.quote
-    # - values lists
-    # - subqueries
-    # - expression lists eg IN (1,2,3)
     def interpolate(sql, params)
       params = params.transform_keys(&:to_s)
       sql
@@ -106,18 +157,5 @@ module Ensql
       Ensql.adapter
     end
 
-    # Serialize a ruby object into a string suitable for interpolation into SQL
-    # This needs to be extensible, but not sure if I like class-based
-    # def literalize(value, name, type=nil)
-    #   adapter.literalize type ? serialize(type, value) : value
-    # rescue => e
-    #   raise "Error quoting #{value.class} for #{name}: #{e}"
-    # end
-
-    # def serialize(type, value)
-    #   Ensql.serializer.fetch(type.to_sym).call(value, adapter)
-    # rescue => e
-    #   raise "Couldn't serialize #{value.inspect} as #{type.type}: #{e}"
-    # end
   end
 end

@@ -16,3 +16,5 @@ gem "activerecord", "~> 6.1"
 gem "sequel", "~> 5.41"
 gem "sqlite3", "~> 1.4"
 gem "pg", "~> 1.2"
+
+gem "yard", "~> 0.9.26"
