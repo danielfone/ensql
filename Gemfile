@@ -12,9 +12,10 @@ gem "rspec", "~> 3.0"
 gem "simplecov", "~> 0.21.2"
 
 # Database adapters
-gem "activerecord", "~> 6.1"
-gem "sequel", "~> 5.41"
-gem "sqlite3", "~> 1.4"
-gem "pg", "~> 1.2"
+require_relative 'lib/ensql/version'
+gem "activerecord", ENV['ACTIVERECORD_VERSION'] || Ensql::ACTIVERECORD_VERSION
+gem "sequel",       ENV['SEQUEL_VERSION']       || Ensql::SEQUEL_VERSION
+gem "sqlite3",      ENV['SQLITE3_VERSION']      || "~> 1.4"
+gem "pg",           ENV['PG_VERSION']           || "~> 1.2"
 
 gem "yard", "~> 0.9.26"

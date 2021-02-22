@@ -24,7 +24,7 @@ RSpec.describe 'Adapters' do
         expect(adapter.literalize(-12)).to eq "-12"
         expect(adapter.literalize(1.23)).to eq "1.23"
         expect(adapter.literalize(Date.new(2020))).to eq "'2020-01-01'"
-        expect(adapter.literalize(true).downcase).to eq 'true'
+        expect(adapter.literalize(true)).to eq('true').or eq('TRUE').or eq("'t'")
         expect(adapter.literalize(nil)).to eq "NULL"
       end
 

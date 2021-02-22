@@ -1,8 +1,11 @@
 # frozen_string_literal: true
 
+require_relative 'version'
+require_relative 'adapter'
+
+# Ensure our optional dependency has a compatible version
+gem 'sequel', Ensql::SEQUEL_VERSION
 require 'sequel'
-require_relative "../ensql"
-require_relative "adapter"
 
 module Ensql
   #
@@ -18,6 +21,7 @@ module Ensql
   #   Ensql.adapter = Ensql::SequelAdapter
   #
   # @see Adapter
+  # @see SEQUEL_VERSION Required gem version
   #
   module SequelAdapter
     extend Adapter

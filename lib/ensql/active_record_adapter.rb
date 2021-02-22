@@ -1,7 +1,11 @@
 # frozen_string_literal: true
 
+require_relative 'version'
+require_relative 'adapter'
+
+# Ensure our optional dependency has a compatible version
+gem 'activerecord', Ensql::ACTIVERECORD_VERSION
 require 'active_record'
-require_relative "adapter"
 
 module Ensql
   #
@@ -15,6 +19,7 @@ module Ensql
   #   Ensql.adapter = Ensql::ActiveRecordAdapter
   #
   # @see Adapter
+  # @see ACTIVERECORD_VERSION Required gem version
   #
   module ActiveRecordAdapter
     extend Adapter
