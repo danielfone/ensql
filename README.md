@@ -47,6 +47,8 @@ total           = Ensql.load_sql('count', subquery: all_results)
 result = { data: current_results.rows, total: total.first_field }
 ```
 
+[Full Documentation](https://rubydoc.info/gems/ensql/Ensql/SQL)
+
 ## Installation
 
 Add this gem to your Gemfile by running:
@@ -60,7 +62,7 @@ Or install it manually with:
 ## Usage
 
 Typically, you don't need to configure anything. Ensql will look for Sequel or ActiveRecord (in that order) and load the
-appropriate adapter. You can override this if you need to, or configure your own adapter. See {Ensql::Adapter} for
+appropriate adapter. You can override this if you need to, or configure your own adapter. See [Ensql::Adapter](https://rubydoc.info/gems/ensql/Ensql) for
 details of the interface.
 
 ```ruby
@@ -93,7 +95,7 @@ All interpolation is marked by `%{}` placeholders in the SQL. This is the only p
 allowed. Only various forms of literal interpolation are supported - identifier interpolation is not supported at this
 stage.
 
-There are 4 types of interpolation, see {Ensql::SQL} for details.
+There are 4 types of interpolation, see [Ensql::SQL](https://rubydoc.info/gems/ensql/Ensql/SQL) for details.
 
   1. `%{param}` interpolates a Ruby object as a SQL literal.
   2. `%{(param)}` expands an array into a list of SQL literals.
