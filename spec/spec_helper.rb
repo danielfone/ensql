@@ -1,6 +1,8 @@
 # frozen_string_literal: true
+require 'support/coverage'
 
-require "ensql"
+
+ENV['TZ'] = 'UTC'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -12,4 +14,7 @@ RSpec.configure do |config|
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end
+
+  config.order = :random
+
 end
