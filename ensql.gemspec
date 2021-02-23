@@ -9,8 +9,8 @@ Gem::Specification.new do |spec|
   spec.email         = ["daniel@fone.net.nz"]
 
   spec.summary       = "Write SQL the safe and simple way"
-  # spec.description   = "TODO: Write a longer description or delete this line."
-  # spec.homepage      = "TODO: Put your gem's website or public repo URL here."
+  spec.description   = "Ditch your ORM and embrace the power and simplicity of writing plain SQL again."
+  spec.homepage      = "https://github.com/danielfone/ensql"
   spec.license       = "MIT"
   spec.required_ruby_version = Gem::Requirement.new(">= 2.4.0")
 
@@ -29,9 +29,4 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  # Uncomment to register a new dependency of your gem
-  # spec.add_dependency "example-gem", "~> 1.0"
-
-  # For more information and examples about making a new gem, checkout our
-  # guide at: https://bundler.io/guides/creating_gem.html
 end
