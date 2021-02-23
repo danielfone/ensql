@@ -62,7 +62,7 @@ Or install it manually with:
 ## Usage
 
 Typically, you don't need to configure anything. Ensql will look for Sequel or ActiveRecord (in that order) and load the
-appropriate adapter. You can override this if you need to, or configure your own adapter. See [Ensql::Adapter](https://rubydoc.info/gems/ensql/Ensql) for
+appropriate adapter. You can override this if you need to, or configure your own adapter. See [Ensql::Adapter](https://rubydoc.info/gems/ensql/Ensql/Adapter) for
 details of the interface.
 
 ```ruby
