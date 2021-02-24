@@ -69,7 +69,7 @@ module Ensql
     # Execute the query and return only the first row of the result.
     # @return <Hash>
     def fetch_first_row(sql)
-      fetch_rows(sql).first
+      fetch_each_row(sql).first
     end
 
     # Execute the query and return only the first column of the result.
