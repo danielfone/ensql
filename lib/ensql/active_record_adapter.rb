@@ -26,12 +26,21 @@ module Ensql
 
     # @!visibility private
     def self.fetch_rows(sql)
+      fetch_each_row(sql).to_a
+    end
+
+    # @!visibility private
+    def self.fetch_each_row(sql, &block)
+      return to_enum(:fetch_each_row, sql) unless block_given?
+
       result = connection.exec_query(sql)
-      result.map do |row|
-        # Deserialize column types if needed
-        row.each_with_object({}) do |(column, value), hash|
-          hash[column] = result.column_types[column] ? result.column_types[column].deserialize(value) : value
-        end
+      # AR populates `column_types` with the types of any columns that haven't
+      # already been type casted by pg decoders. If present, we need to
+      # deserialize them now.
+      if result.column_types.any?
+        result.each { |row| yield deserialize_types(row, result.column_types) }
+      else
+        result.each(&block)
       end
     end
 
@@ -54,7 +63,13 @@ module Ensql
       ActiveRecord::Base.connection
     end
 
-    private_class_method :connection
+    def self.deserialize_types(row, column_types)
+      row.each_with_object({}) { |(column, value), hash|
+        hash[column] = column_types[column]&.deserialize(value) || value
+      }
+    end
+
+    private_class_method :connection, :deserialize_types
 
   end
 end
