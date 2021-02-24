@@ -30,6 +30,14 @@ jobs:
       fail-fast: false
       matrix:
         ruby-version: [2.7, 2.6, 2.5, 3.0]
+        gemfile: [Gemfile]
+        include:
+          - ruby-version: 2.5
+            gemfile: minimum.gemfile
+
+    env: # $BUNDLE_GEMFILE must be set at the job level, so it is set for all steps
+      BUNDLE_GEMFILE: ${{ matrix.gemfile }}
+      COVERAGE: ${{ matrix.gemfile != 'minimum.gemfile' }}
 
     steps:
     - uses: actions/checkout@v2
