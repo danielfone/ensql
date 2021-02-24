@@ -9,16 +9,26 @@ require 'sequel'
 
 module Ensql
   #
-  # Implements the {Adapter} interface for Sequel. Requires a Sequel connection to
-  # be established. Uses the first connection found in Sequel::DATABASES. You
-  # may want to utilize the relevant extensions to make the most of the
-  # deserialization.
+  # Implements the {Adapter} interface for Sequel. Requires a Sequel connection
+  # to be established. Uses the first connection found in Sequel::DATABASES. You
+  # may want to utilize the relevant extensions to make the most of
+  # deserialization and other database features.
   #
-  # @example
-  #   require 'sequel'
-  #   DB = Sequel.connect('postgres://localhost/mydb')
-  #   DB.extend(:pg_json)
-  #   Ensql.adapter = Ensql::SequelAdapter
+  #     require 'sequel'
+  #     DB = Sequel.connect('postgres://localhost/mydb')
+  #     DB.extend(:pg_json)
+  #     Ensql.adapter = Ensql::SequelAdapter
+  #
+  # To stream rows, configure streaming on the connection and use
+  # {SQL.each_row}
+  #
+  #      DB = Sequel.connect('postgresql:/')
+  #      DB.extension(:pg_streaming)
+  #      DB.stream_all_queries = true
+  #      Ensql.sql("select * from large_table").each_row do  |row|
+  #        # This now yields each row in single-row mode.
+  #        # The connection cannot be used for other queries while this is streaming.
+  #      end
   #
   # @see Adapter
   # @see SEQUEL_VERSION Required gem version
@@ -28,7 +38,14 @@ module Ensql
 
     # @!visibility private
     def self.fetch_rows(sql)
-      db.fetch(sql).map { |r| r.transform_keys(&:to_s) }
+      fetch_each_row(sql).to_a
+    end
+
+    # @!visibility private
+    def self.fetch_each_row(sql)
+      return to_enum(:fetch_each_row, sql) unless block_given?
+
+      db.fetch(sql) { |r| yield r.transform_keys(&:to_s) }
     end
 
     # @!visibility private

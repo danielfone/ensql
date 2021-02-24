@@ -18,4 +18,5 @@ group :adapters do
   gem "sequel",       "~> 5.9"
   gem "sqlite3"
   gem "pg"
+  gem "sequel_pg"
 end
