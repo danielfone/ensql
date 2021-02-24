@@ -107,7 +107,7 @@ RSpec.describe 'Adapters' do
   end
 
   describe Ensql::ActiveRecordAdapter do
-    before(:context) { ActiveRecord::Base.establish_connection(adapter: "postgresql") }
+    before(:context) { ActiveRecord::Base.establish_connection(adapter: "postgresql", host: "localhost") }
 
     it_behaves_like "an adapter"
   end
@@ -115,7 +115,7 @@ RSpec.describe 'Adapters' do
   describe Ensql::SequelAdapter do
     before(:context) do
       Sequel::DATABASES.clear
-      db = Sequel.connect('postgresql:/')
+      db = Sequel.connect('postgresql://localhost')
       db.extension(:pg_json)
     end
 
