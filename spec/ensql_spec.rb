@@ -100,10 +100,4 @@ RSpec.describe Ensql do
     expect(Ensql::VERSION).not_to be nil
   end
 
-  describe 'v2' do
-    pending 'uses pg directly'
-    pending 'streams results'
-    pending 'can be configured to use bind variables'
-  end
-
 end
