@@ -190,9 +190,16 @@ After checking out the repo, run `bin/setup` to install dependencies. Then, run 
 need a running postgres database. You can also run `bin/console` for an interactive prompt that will allow you to
 experiment.
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the
-version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version,
-push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+To install this gem onto your local machine, run `bundle exec rake install`.
+
+### Release Checklist
+
+- [ ] Review changes in master since last release, especially the public API.
+- [ ] Ensure documentation is up to date.
+- [ ] Bump appropriate part of version in `version.rb`.
+- [ ] Update the spec version in each `.lock`.
+- [ ] Update `Changelog.md` with summary of new version.
+- [ ] Run `rake release` to create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 
 ## Contributing
 
