@@ -41,6 +41,13 @@ module Ensql
     #
     # @return [Array<Hash>] rows as hashes keyed by column name
 
+    # @!method fetch_each_row(sql)
+    #
+    # Execute the query and yield each resulting row. This should provide a more
+    # efficient method of iterating through large datasets.
+    #
+    # @yield <Hash> row
+
     # @!method fetch_count(sql)
     #
     # Execute the statement and return the number of rows affected. Typically
@@ -58,18 +65,11 @@ module Ensql
 
     # @!group 2. Predefined Methods
 
-    # Execute the query and yield each resulting row. This should provide a more
-    # efficient method of iterating through large datasets.
-    #
-    # @yield <Hash> row
-    def fetch_each_row(sql, &block)
-      fetch_rows(sql).each(&block)
-    end
 
     # Execute the query and return only the first row of the result.
     # @return <Hash>
     def fetch_first_row(sql)
-      fetch_rows(sql).first
+      fetch_each_row(sql).first
     end
 
     # Execute the query and return only the first column of the result.

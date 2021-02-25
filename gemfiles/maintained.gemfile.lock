@@ -40,6 +40,9 @@ GEM
       rspec-support (~> 3.10.0)
     rspec-support (3.10.2)
     sequel (5.41.0)
+    sequel_pg (1.14.0)
+      pg (>= 0.18.0, != 1.2.0)
+      sequel (>= 4.38.0)
     simplecov (0.21.2)
       docile (~> 1.1)
       simplecov-html (~> 0.11)
@@ -64,6 +67,7 @@ DEPENDENCIES
   rake (~> 13.0)
   rspec (~> 3.0)
   sequel (~> 5.9)
+  sequel_pg
   simplecov (~> 0.21.2)
   sqlite3
   yard (~> 0.9.26)
