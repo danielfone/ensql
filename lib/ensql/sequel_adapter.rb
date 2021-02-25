@@ -4,7 +4,7 @@ require_relative 'version'
 require_relative 'adapter'
 
 # Ensure our optional dependency has a compatible version
-gem 'sequel', Ensql::SEQUEL_VERSION
+gem 'sequel', Ensql::SUPPORTED_SEQUEL_VERSIONS
 require 'sequel'
 
 module Ensql
@@ -30,8 +30,7 @@ module Ensql
   #        # The connection cannot be used for other queries while this is streaming.
   #      end
   #
-  # @see Adapter
-  # @see SEQUEL_VERSION Required gem version
+  # @see SUPPORTED_SEQUEL_VERSIONS
   #
   module SequelAdapter
     extend Adapter

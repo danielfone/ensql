@@ -4,7 +4,7 @@ require_relative 'version'
 require_relative 'adapter'
 
 # Ensure our optional dependency has a compatible version
-gem 'activerecord', Ensql::ACTIVERECORD_VERSION
+gem 'activerecord', Ensql::SUPPORTED_ACTIVERECORD_VERSIONS
 require 'active_record'
 
 module Ensql
@@ -18,8 +18,7 @@ module Ensql
   #   ActiveRecord::Base.establish_connection(adapter: 'postgresql', database: 'mydb')
   #   Ensql.adapter = Ensql::ActiveRecordAdapter
   #
-  # @see Adapter
-  # @see ACTIVERECORD_VERSION Required gem version
+  # @see SUPPORTED_ACTIVERECORD_VERSIONS
   #
   module ActiveRecordAdapter
     extend Adapter

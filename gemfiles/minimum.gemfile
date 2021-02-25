@@ -17,8 +17,8 @@ gem 'simplecov', '~> 0.18.5'
 # Optional runtime dependencies
 group :adapters do
   require_relative '../lib/ensql/version'
-  gem "activerecord", Ensql::ACTIVERECORD_VERSION.to_s.scan(/\d+.\d+/).first
-  gem "sequel",       Ensql::SEQUEL_VERSION.to_s.scan(/\d+.\d+/).first
+  gem "activerecord", Ensql::SUPPORTED_ACTIVERECORD_VERSIONS.to_s.scan(/\d+.\d+/).first
+  gem "sequel",       Ensql::SUPPORTED_SEQUEL_VERSIONS.to_s.scan(/\d+.\d+/).first
   gem "sqlite3",      "~> 1.3.6" # AR version constraint
   gem "pg",           "~> 0.18" # AR version constraint
   gem "sequel_pg"
