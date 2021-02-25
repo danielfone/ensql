@@ -1,5 +1,9 @@
 # Ensql
 
+[![Gem Version](https://badge.fury.io/rb/ensql.svg)](https://badge.fury.io/rb/ensql)
+[![Ruby](https://github.com/danielfone/ensql/actions/workflows/specs.yml/badge.svg)](https://github.com/danielfone/ensql/actions/workflows/specs.yml)
+[![Maintainability](https://api.codeclimate.com/v1/badges/a4ab07e1a03c4d1e8043/maintainability)](https://codeclimate.com/github/danielfone/ensql/maintainability)
+
 Ensql lets you write SQL for your application the safe and simple way. Ditch your ORM and embrace the power and
 simplicity of writing plain SQL again.
 
@@ -46,8 +50,11 @@ current_results = Ensql.load_sql('results/page', results: all_results, page: 2)
 total           = Ensql.load_sql('count', subquery: all_results)
 result = { data: current_results.rows, total: total.first_field }
 ```
+### Further Reading:
 
-[Full Documentation](https://rubydoc.info/gems/ensql/Ensql/SQL)
+* [Source Code](https://github.com/danielfone/ensql)
+* [API Documentation](https://rubydoc.info/gems/ensql/Ensql/SQL)
+* [Rubygem](https://rubygems.org/gems/ensql)
 
 ## Installation
 
@@ -59,10 +66,16 @@ Or install it manually with:
 
     $ gem install ensql
 
+Ensql requires:
+
+* Ruby >= 2.4.0
+* Sequel >= 5.9 if using Sequel
+* ActiveRecord >= 5.0 if using ActiveRecord
+
 ## Usage
 
 Typically, you don't need to configure anything. Ensql will look for Sequel or ActiveRecord (in that order) and load the
-appropriate adapter. You can override this if you need to, or configure your own adapter. See [Ensql::Adapter](https://rubydoc.info/gems/ensql/Ensql/Adapter) for
+appropriate adapter. You can override this if you need to, or configure your own adapter. See [the API docs](https://rubydoc.info/gems/ensql/Ensql/Adapter) for
 details of the interface.
 
 ```ruby
@@ -95,7 +108,7 @@ All interpolation is marked by `%{}` placeholders in the SQL. This is the only p
 allowed. Only various forms of literal interpolation are supported - identifier interpolation is not supported at this
 stage.
 
-There are 4 types of interpolation, see [Ensql::SQL](https://rubydoc.info/gems/ensql/Ensql/SQL) for details.
+There are 4 types of interpolation:
 
   1. `%{param}` interpolates a Ruby object as a SQL literal.
   2. `%{(param)}` expands an array into a list of SQL literals.
@@ -122,7 +135,7 @@ Ensql.sql('SELECT * FROM users ORDER BY %{!orderby}', orderby: Ensql.sql('name a
 # SELECT * FROM users ORDER BY name asc
 ```
 
-Interpolation occurs just before the SQL is executed.
+See [the API docs](https://rubydoc.info/gems/ensql/Ensql/SQL) for details.
 
 ### Results
 

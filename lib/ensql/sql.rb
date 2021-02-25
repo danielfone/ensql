@@ -4,8 +4,8 @@ require_relative "../ensql"
 
 module Ensql
   #
-  # Encapsulates a plain-text SQL statement and optional parameters to interpolate. Interpolation is indicated by one
-  # of the four placeholder formats:
+  # Encapsulates a plain-text SQL statement and optional parameters to interpolate. Interpolation is indicated by one of
+  # the four placeholder formats:
   #
   # 1. **Literal:** `%{param}`
   #    - Interpolates `param` as a quoted string or a numeric literal depending on the class.
@@ -31,6 +31,7 @@ module Ensql
   #    - Allows composition of SQL via subqueries.
   #
   # Any placeholders in the SQL must be present in the params hash or a KeyError will be raised during interpolation.
+  # Interpolation occurs just before the SQL is executed.
   #
   # @example
   #   # Interpolate a literal
