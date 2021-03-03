@@ -6,8 +6,8 @@ RSpec.describe Ensql::SQL do
 
   before(:context) do
     Sequel::DATABASES.clear
-    Sequel.connect('sqlite:/')
-    Ensql.adapter = Ensql::SequelAdapter
+    db = Sequel.connect('sqlite:/')
+    Ensql.adapter = Ensql::SequelAdapter.new(db)
     Ensql.run 'create table test (a, b)'
   end
 

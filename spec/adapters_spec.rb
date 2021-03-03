@@ -5,7 +5,6 @@ require 'ensql/sequel_adapter'
 RSpec.describe 'Adapters' do
 
   shared_examples_for "an adapter" do
-    subject(:adapter) { described_class }
 
     before do
       adapter.run 'create temporary table if not exists ensql_adapter_test (a text, b numeric)'
@@ -107,12 +106,16 @@ RSpec.describe 'Adapters' do
   end
 
   describe Ensql::ActiveRecordAdapter do
+    subject(:adapter) { described_class.new }
+
     before(:context) { ActiveRecord::Base.establish_connection(adapter: "postgresql", host: "localhost") }
 
     it_behaves_like "an adapter"
   end
 
   describe Ensql::SequelAdapter do
+    subject(:adapter) { described_class.new }
+
     before(:context) do
       Sequel::DATABASES.clear
       DB = Sequel.connect('postgresql://localhost')
@@ -132,7 +135,7 @@ RSpec.describe 'Adapters' do
       it 'yields the first row much faster' do
         start = monotonic_now
         # Measure time to yield first row
-        time_to_first_row = Ensql::SequelAdapter.fetch_each_row("select * from generate_series(1,100000)") { break monotonic_now - start }
+        time_to_first_row = adapter.fetch_each_row("select * from generate_series(1,100000)") { break monotonic_now - start }
         # Measure time to it took to process the rest of the results
         time_to_finish = monotonic_now - start
         # Expect first row be be yieled in under half the time

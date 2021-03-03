@@ -11,7 +11,7 @@ RSpec.describe Ensql do
   end
 
   before do
-    Ensql.adapter = Ensql::SequelAdapter
+    Ensql.adapter = Ensql::SequelAdapter.new
     Ensql.run 'create table if not exists test (a, b)'
     Ensql.run 'delete from test'
   end
@@ -33,11 +33,11 @@ RSpec.describe Ensql do
   end
 
   it 'can use Sequel or ActiveRecord' do
-    Ensql.adapter = Ensql::SequelAdapter
+    Ensql.adapter = Ensql::SequelAdapter.new
     expect { Ensql.run('select * from not_a_table') }.to raise_error Sequel::DatabaseError
 
     ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
-    Ensql.adapter = Ensql::ActiveRecordAdapter
+    Ensql.adapter = Ensql::ActiveRecordAdapter.new
     expect { Ensql.run('select * from not_a_table') }.to raise_error ActiveRecord::StatementInvalid
   end
 
@@ -77,10 +77,10 @@ RSpec.describe Ensql do
 
     it 'autodetects Sequel and ActiveRecord' do
       Ensql.adapter = nil
-      expect(Ensql.adapter).to eq Ensql::SequelAdapter
+      expect(Ensql.adapter).to be_a Ensql::SequelAdapter
       hide_const 'Sequel'
       Ensql.adapter = nil
-      expect(Ensql.adapter).to eq Ensql::ActiveRecordAdapter
+      expect(Ensql.adapter).to be_a Ensql::ActiveRecordAdapter
     end
 
     it 'raises if autodetection fails' do
@@ -93,6 +93,11 @@ RSpec.describe Ensql do
     it 'can be manually set' do
       expect { Ensql.adapter = :foo }
         .to change { Ensql.adapter }.to :foo
+    end
+
+    it 'warns if using deprecated adapters' do
+      expect { Ensql.adapter = Ensql::ActiveRecordAdapter }.to output(/deprecated/).to_stderr
+      expect { Ensql.adapter = Ensql::SequelAdapter }.to output(/deprecated/).to_stderr
     end
 
     describe 'thread-safety' do

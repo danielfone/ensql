@@ -82,9 +82,9 @@ module Ensql
     #
     # @example
     #     require 'sequel'
-    #     Ensql.adapter # => Ensql::SequelAdapter
-    #     Ensql.adapter = Ensql::ActiveRecordAdapter # override adapter
-    #     Ensql.adapter = CustomMSSQLAdapater # supply your own adapter
+    #     Ensql.adapter # => Ensql::SequelAdapter.new
+    #     Ensql.adapter = Ensql::ActiveRecordAdapter.new # override adapter
+    #     Ensql.adapter = my_tsql_adapter # supply your own adapter
     #
     def adapter
       Thread.current[:ensql_adapter] || Thread.main[:ensql_adapter] ||= autoload_adapter
@@ -94,6 +94,10 @@ module Ensql
     # {Ensql::Adapter}. This uses a thread-local variable so adapters can be
     # switched safely in a multi-threaded web server.
     def adapter=(adapter)
+      if adapter.is_a?(Module) && (adapter.name == 'Ensql::SequelAdapter' || adapter.name == 'Ensql::ActiveRecordAdapter')
+        warn "Using `#{adapter}` as an adapter is deprecated, use `#{adapter}.new`.", uplevel: 1
+      end
+
       Thread.current[:ensql_adapter] = adapter
     end
 
@@ -102,10 +106,10 @@ module Ensql
     def autoload_adapter
       if defined? Sequel
         require_relative 'ensql/sequel_adapter'
-        SequelAdapter
+        SequelAdapter.new
       elsif defined? ActiveRecord
         require_relative 'ensql/active_record_adapter'
-        ActiveRecordAdapter
+        ActiveRecordAdapter.new
       else
         raise Error, "Couldn't autodetect an adapter, please specify manually."
       end
