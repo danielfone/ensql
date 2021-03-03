@@ -76,9 +76,9 @@ module Ensql
       SQL.new(sql, params).run
     end
 
-    # Connection adapter to use. Must implement the interface defined in
-    # {Ensql::Adapter}. If not specified, it will try to autoload an adapter
-    # based on the availability of Sequel or ActiveRecord, in that order.
+    # Get the current connection adapter. If not specified, it will try to
+    # autoload an adapter based on the availability of Sequel or ActiveRecord,
+    # in that order.
     #
     # @example
     #     require 'sequel'
@@ -87,9 +87,15 @@ module Ensql
     #     Ensql.adapter = CustomMSSQLAdapater # supply your own adapter
     #
     def adapter
-      @adapter ||= autoload_adapter
+      Thread.current[:ensql_adapter] || Thread.main[:ensql_adapter] ||= autoload_adapter
     end
-    attr_writer :adapter
+
+    # Set the connection adapter to use. Must implement the interface defined in
+    # {Ensql::Adapter}. This uses a thread-local variable so adapters can be
+    # switched safely in a multi-threaded web server.
+    def adapter=(adapter)
+      Thread.current[:ensql_adapter] = adapter
+    end
 
   private
 
