@@ -94,6 +94,30 @@ RSpec.describe Ensql do
       expect { Ensql.adapter = :foo }
         .to change { Ensql.adapter }.to :foo
     end
+
+    describe 'thread-safety' do
+
+      it 'is autodetected in all threads' do
+        Ensql.adapter = nil
+        expect(Ensql.adapter).to eq Thread.new { Ensql.adapter }.join.value
+      end
+
+      it 'is shared from main thread' do
+        Ensql.adapter = :foo
+        Thread.new { expect(Ensql.adapter).to eq :foo }
+      end
+
+      it 'is isolated between child threads' do
+        Ensql.adapter = :foo
+        Thread.new {
+          Ensql.adapter = :bar
+          expect(Ensql.adapter).to eq :bar
+        }.join.value
+        expect(Ensql.adapter).to eq :foo
+      end
+
+    end
+
   end
 
   it "has a version number" do
