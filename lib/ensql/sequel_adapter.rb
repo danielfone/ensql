@@ -2,6 +2,7 @@
 
 require_relative 'version'
 require_relative 'adapter'
+require_relative 'pool_wrapper'
 
 # Ensure our optional dependency has a compatible version
 gem 'sequel', Ensql::SUPPORTED_SEQUEL_VERSIONS
@@ -43,6 +44,20 @@ module Ensql
       extend Forwardable
 
       delegate [:literalize, :run, :fetch_count, :fetch_each_row, :fetch_rows, :fetch_first_column, :fetch_first_field, :fetch_first_row] => :new
+    end
+
+    # Wrap the raw connections from a Sequel::Database connection pool. This
+    # allows us to safely checkout the underlying database connection for use in
+    # a database specific adapter.
+    #
+    #     Ensql.adapter = MySqliteAdapter.new(SequelAdapter.pool)
+    #
+    # @param db [Sequel::Database]
+    # @return [PoolWrapper] a pool adapter for raw connections
+    def self.pool(db)
+      PoolWrapper.new do |client_block|
+        db.pool.hold(&client_block)
+      end
     end
 
     # @param db [Sequel::Database]

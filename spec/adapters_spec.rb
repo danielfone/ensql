@@ -111,6 +111,10 @@ RSpec.describe 'Adapters' do
     before(:context) { ActiveRecord::Base.establish_connection(adapter: "postgresql", host: "localhost") }
 
     it_behaves_like "an adapter"
+
+    it 'provides a raw connection pool' do
+      expect { |b| Ensql::ActiveRecordAdapter.pool.with(&b) }.to yield_with_args(PG::Connection)
+    end
   end
 
   describe Ensql::SequelAdapter do
@@ -124,6 +128,10 @@ RSpec.describe 'Adapters' do
     end
 
     it_behaves_like "an adapter"
+
+    it 'provides a raw connection pool' do
+      expect { |b| Ensql::SequelAdapter.pool(DB).with(&b) }.to yield_with_args(PG::Connection)
+    end
 
     context 'with single-row mode enabled' do
       around do |spec|
