@@ -1,13 +1,14 @@
 # frozen_string_literal: true
 require 'ensql/active_record_adapter'
 require 'ensql/sequel_adapter'
+require 'ensql/postgres_adapter'
 
 RSpec.describe 'Adapters' do
 
   shared_examples_for "an adapter" do
 
     before do
-      adapter.run 'create temporary table if not exists ensql_adapter_test (a text, b numeric)'
+      adapter.run 'create temporary table if not exists ensql_adapter_test (a text, b int)'
       adapter.run 'truncate ensql_adapter_test'
       adapter.run 'insert into ensql_adapter_test values (1, 2), (3, 4)'
     end
@@ -27,6 +28,11 @@ RSpec.describe 'Adapters' do
         expect(adapter.literalize(nil)).to eq "NULL"
       end
 
+      it 'raises for unsupported objects' do
+        expect { adapter.literalize(Object.new) }
+          .to raise_error(/can't quote Object|can't express #<Object|No SQL serializer for Object/)
+      end
+
     end
 
     describe '#fetch_rows(sql)' do
@@ -44,6 +50,16 @@ RSpec.describe 'Adapters' do
         ]
       end
 
+      it 'returns empty results' do
+        expect(adapter.fetch_rows("select where 1=1")).to eq [{}]
+        expect(adapter.fetch_rows("select where 1=0")).to eq []
+      end
+
+      it 'raises on invalid queries', :aggregate_failures do
+        expect { adapter.fetch_rows("foo") }.to raise_original_error(PG::SyntaxError)
+        expect { adapter.fetch_rows("select * from missing_table") }.to raise_original_error(PG::UndefinedTable)
+      end
+
     end
 
     describe "#fetch_count(sql)" do
@@ -53,6 +69,16 @@ RSpec.describe 'Adapters' do
         expect(adapter.fetch_count("select * from ensql_adapter_test")).to eq 2
       end
 
+      it 'raises on invalid queries', :aggregate_failures do
+        expect { adapter.fetch_count("foo") }.to raise_original_error(PG::SyntaxError)
+        expect { adapter.fetch_count("select * from missing_table") }.to raise_original_error(PG::UndefinedTable)
+      end
+
+      it 'returns counts for empty results' do
+        expect(adapter.fetch_count("select where 1=1")).to eq 1
+        expect(adapter.fetch_count("select where 1=0")).to eq 0
+      end
+
     end
 
     describe "#run(sql)" do
@@ -60,6 +86,11 @@ RSpec.describe 'Adapters' do
       it 'runs the supplied statements' do
         expect { adapter.run 'insert into ensql_adapter_test values (10,11)'}
           .to change { adapter.fetch_first_field('select count(*) from ensql_adapter_test') }.from(2).to(3)
+      end
+
+      it 'raises on invalid queries', :aggregate_failures do
+        expect { adapter.fetch_count("foo") }.to raise_original_error(PG::SyntaxError)
+        expect { adapter.fetch_count("select * from missing_table") }.to raise_original_error(PG::UndefinedTable)
       end
 
     end
@@ -75,6 +106,20 @@ RSpec.describe 'Adapters' do
         )
       end
 
+      it 'yields empty results' do
+        expect { |b| adapter.fetch_each_row("select where 1=1", &b) }.to yield_with_args({})
+        expect { |b| adapter.fetch_each_row("select where 1=0", &b) }.not_to yield_control
+      end
+
+      it 'raises on invalid queries', :aggregate_failures do
+        expect { adapter.fetch_count("foo") }.to raise_original_error(PG::SyntaxError)
+        expect { adapter.fetch_count("select * from missing_table") }.to raise_original_error(PG::UndefinedTable)
+      end
+
+      it 'returns an enum if no block is supplied' do
+        expect(adapter.fetch_each_row('select * from ensql_adapter_test')).to be_a Enumerator
+      end
+
     end
 
     describe "#fetch_first_row(sql)" do
@@ -86,6 +131,11 @@ RSpec.describe 'Adapters' do
         )
       end
 
+      it 'returns blankly for empty results' do
+        expect(adapter.fetch_first_row("select where 1=1")).to eq({})
+        expect(adapter.fetch_first_row("select where 1=0")).to eq nil
+      end
+
     end
 
     describe "#fetch_first_column(sql)" do
@@ -94,12 +144,22 @@ RSpec.describe 'Adapters' do
         expect(adapter.fetch_first_column("select b from ensql_adapter_test")).to eq [2, 4]
       end
 
+      it 'returns blankly for empty results' do
+        expect(adapter.fetch_first_column("select where 1=1")).to eq [nil]
+        expect(adapter.fetch_first_column("select where 1=0")).to eq []
+      end
+
     end
 
     describe "#fetch_first_field(sql)" do
 
       it 'returns the first field' do
         expect(adapter.fetch_first_field("select count(*) from ensql_adapter_test")).to eq 2
+      end
+
+      it 'returns nil for empty results', :aggregate_failures do
+        expect(adapter.fetch_first_field("select where 1=1")).to eq nil
+        expect(adapter.fetch_first_field("select where 1=0")).to eq nil
       end
 
     end
@@ -156,6 +216,37 @@ RSpec.describe 'Adapters' do
       end
     end
 
+  end
+
+  describe Ensql::PostgresAdapter do
+
+    it_behaves_like "an adapter" do
+      subject(:adapter) { described_class.pool { PG.connect host: 'localhost' } }
+
+      it 'can round-trip ruby objects', :aggregate_failures do
+        values = {
+          "It's quoted" => nil,
+          1100 => nil,
+          1.23 => nil,
+          nil => nil,
+          Time.now => :timestamp,
+          Date.today => :date,
+          { 'a' => 1 } => :json,
+          [1, 2, 3] => 'int[]',
+        }
+        values.each do |v, type|
+          literal = adapter.literalize(v)
+          sql = type ? "cast(#{literal} as #{type})" : literal
+          expect(adapter.fetch_first_field("select #{sql}")).to eq v
+        end
+      end
+    end
+
+  end
+
+  # Matcher for an error class or cause
+  def raise_original_error(klass)
+    raise_error { |e| expect([e, e.cause]).to include klass }
   end
 
 end
