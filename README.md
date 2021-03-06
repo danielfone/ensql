@@ -79,7 +79,7 @@ appropriate adapter. You can override this if you need to, or configure your own
 details of the interface.
 
 ```ruby
-Ensql.adapter = Ensql::ActiveRecordAdapter # Will use ActiveRecord instead
+Ensql.adapter = Ensql::ActiveRecordAdapter.new # Will use ActiveRecord instead
 ```
 
 SQL can be supplied directly or read from a file. You're encouraged to organise all but the most trivial statements in
