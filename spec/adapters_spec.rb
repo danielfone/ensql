@@ -229,7 +229,7 @@ RSpec.describe 'Adapters' do
           1100 => nil,
           1.23 => nil,
           nil => nil,
-          Time.now => :timestamp,
+          Time.now.round(6) => :timestamp, # On linux (but not OS X), Ruby time is more precise than postgres timestamps
           Date.today => :date,
           { 'a' => 1 } => :json,
           [1, 2, 3] => 'int[]',
