@@ -83,14 +83,14 @@ want to use the much faster and more convenient PostgresAdapter.
 # Use ActiveRecord instead of Sequel if both are available
 Ensql.adapter = Ensql::ActiveRecordAdapter.new
 
-# Use the Postgres specific adapter, with ActiveRecord's connection pool
+# Use the PostgreSQL specific adapter, with ActiveRecord's connection pool
 Ensql.adapter = Ensql::PostgresAdapter.new Ensql::ActiveRecordAdapter.pool
 
-# Use the Postgres specific adapter, with Sequel's connection pool
+# Use the PostgreSQL specific adapter, with Sequel's connection pool
 DB = Sequel.connect(ENV['DATABASE_URL'])
 Ensql.adapter = Ensql::PostgresAdapter.new Ensql::SequelAdapter.pool(DB)
 
-# Use the Postgres specific adapter, with our own thread-safe connection pool
+# Use the PostgreSQL specific adapter, with our own thread-safe connection pool
 Ensql.adapter = Ensql::PostgresAdapter.pool { PG.connect ENV['DATABASE_URL'] }
 ```
 You can also supply your own adapter (see [the API docs](https://rubydoc.info/gems/ensql/Ensql/Adapter) for details of the interface).
@@ -192,14 +192,14 @@ Ensql.run('TRUNCATE logs') # same thing
 - Maybe we could use type hinting like `%{param:pgarray}` to indicated how to serialise the object as a literal.
 
 - Detecting the database and switching to a db specific adapters. This allows us to be more efficient and optimise some
-  literals in a database specific format, e.g. postgres array literals.
+  literals in a database specific format, e.g. PostgreSQL array literals.
 
 - Proper single-row mode support for the pg adapter
 
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You'll
-need a running postgres database. You can also run `bin/console` for an interactive prompt that will allow you to
+need a running PostgreSQL database. You can also run `bin/console` for an interactive prompt that will allow you to
 experiment.
 
 To install this gem onto your local machine, run `bundle exec rake install`.

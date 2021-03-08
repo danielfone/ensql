@@ -45,8 +45,7 @@ module Ensql
       new ConnectionPool.new(**pool_opts, &connection_block)
     end
 
-    # @param pool [#with] must yield a PG::Connection
-    #
+    # @param pool [PoolWrapper, ConnectionPool, #with] a object that yields a PG::Connection using `#with`
     def initialize(pool)
       @pool = pool
       @quoter = PG::TextEncoder::QuotedLiteral.new
@@ -55,10 +54,12 @@ module Ensql
       @query_type_map[Date] = PG::TextEncoder::Date.new
     end
 
+    # @visibility private
     def run(sql)
       execute(sql) { nil }
     end
 
+    # @visibility private
     def literalize(value)
       case value
       when NilClass then 'NULL'
@@ -69,29 +70,35 @@ module Ensql
       end
     end
 
+    # @visibility private
     def fetch_count(sql)
       execute(sql, &:cmd_tuples)
     end
 
+    # @visibility private
     def fetch_first_field(sql)
       fetch_result(sql) { |res| res.getvalue(0, 0) if res.ntuples > 0 && res.nfields > 0 }
     end
 
+    # @visibility private
     def fetch_first_row(sql)
       fetch_result(sql) { |res| res[0] if res.ntuples > 0 }
     end
 
-    # Return an array of nils if we don't have a column
+    # @visibility private
     def fetch_first_column(sql)
+      # Return an array of nils if we don't have a column
       fetch_result(sql) { |res| res.nfields > 0 ? res.column_values(0) : Array.new(res.ntuples) }
     end
 
+    # @visibility private
     def fetch_each_row(sql, &block)
       return to_enum(:fetch_each_row, sql) unless block_given?
 
       fetch_result(sql) { |res| res.each(&block) }
     end
 
+    # @visibility private
     def fetch_rows(sql)
       fetch_result(sql, &:to_a)
     end

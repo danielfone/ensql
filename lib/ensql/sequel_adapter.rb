@@ -65,30 +65,30 @@ module Ensql
       @db = db
     end
 
-    # (see Adapter.fetch_rows)
+    # @visibility private
     def fetch_rows(sql)
       fetch_each_row(sql).to_a
     end
 
-    # (see Adapter.fetch_each_row)
+    # @visibility private
     def fetch_each_row(sql)
       return to_enum(:fetch_each_row, sql) unless block_given?
 
       db.fetch(sql) { |r| yield r.transform_keys(&:to_s) }
     end
 
-    # (see Adapter.fetch_count)
+    # @visibility private
     def fetch_count(sql)
       db.execute_dui(sql)
     end
 
-    # (see Adapter.run)
+    # @visibility private
     def run(sql)
       db << sql
       nil
     end
 
-    # (see Adapter.literalize)
+    # @visibility private
     def literalize(value)
       db.literal(value)
     end
