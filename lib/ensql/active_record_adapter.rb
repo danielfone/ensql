@@ -54,12 +54,12 @@ module Ensql
       @base = base
     end
 
-    # (see Adapter.fetch_rows)
+    # @visibility private
     def fetch_rows(sql)
       fetch_each_row(sql).to_a
     end
 
-    # (see Adapter.fetch_each_row)
+    # @visibility private
     def fetch_each_row(sql, &block)
       return to_enum(:fetch_each_row, sql) unless block_given?
 
@@ -74,18 +74,18 @@ module Ensql
       end
     end
 
-    # (see Adapter.run)
+    # @visibility private
     def run(sql)
       with_connection { |c| c.execute(sql) }
       nil
     end
 
-    # (see Adapter.fetch_count)
+    # @visibility private
     def fetch_count(sql)
       with_connection { |c| c.exec_update(sql) }
     end
 
-    # (see Adapter.literalize)
+    # @visibility private
     def literalize(value)
       with_connection { |c| c.quote(value) }
     end

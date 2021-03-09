@@ -95,6 +95,7 @@ module Ensql
     # (see Adapter.fetch_each_row)
     def each_row(&block)
       adapter.fetch_each_row(to_sql, &block)
+      nil
     end
 
     # Interpolate the params into the SQL statement.

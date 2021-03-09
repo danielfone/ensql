@@ -13,6 +13,7 @@ gemspec path: '../'
 
 # Downgrade simplecov for ruby 2.4 compat
 gem 'simplecov', '~> 0.18.5'
+gem 'connection_pool', '0.9.3'
 
 # Optional runtime dependencies
 group :adapters do
@@ -20,6 +21,6 @@ group :adapters do
   gem "activerecord", Ensql::SUPPORTED_ACTIVERECORD_VERSIONS.to_s.scan(/\d+.\d+/).first
   gem "sequel",       Ensql::SUPPORTED_SEQUEL_VERSIONS.to_s.scan(/\d+.\d+/).first
   gem "sqlite3",      "~> 1.3.6" # AR version constraint
-  gem "pg",           "~> 0.18" # AR version constraint
+  gem "pg",           Ensql::SUPPORTED_PG_VERSIONS.to_s.scan(/\d+.\d+/).first
   gem "sequel_pg"
 end

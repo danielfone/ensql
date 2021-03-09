@@ -68,19 +68,33 @@ Or install it manually with:
 
 Ensql requires:
 
-* Ruby >= 2.4.0
-* Sequel >= 5.9 if using Sequel
-* ActiveRecord >= 5.0 if using ActiveRecord
+* ruby >= 2.4.0
+* sequel >= 5.9 if using SequelAdapter
+* activerecord >= 5.0 if using ActiveRecordAdapter
+* pg >= 0.19 if using PostgresAdapter
 
 ## Usage
 
 Typically, you don't need to configure anything. Ensql will look for Sequel or ActiveRecord (in that order) and load the
-appropriate adapter. You can override this if you need to, or configure your own adapter. See [the API docs](https://rubydoc.info/gems/ensql/Ensql/Adapter) for
-details of the interface.
+appropriate adapter. You can override this if the wrong adapter is autoconfigured, or if you're using PostgreSQL and
+want to use the much faster and more convenient PostgresAdapter.
 
 ```ruby
-Ensql.adapter = Ensql::ActiveRecordAdapter.new # Will use ActiveRecord instead
+# Use ActiveRecord instead of Sequel if both are available
+Ensql.adapter = Ensql::ActiveRecordAdapter.new
+
+# Use the PostgreSQL specific adapter, with ActiveRecord's connection pool
+Ensql.adapter = Ensql::PostgresAdapter.new Ensql::ActiveRecordAdapter.pool
+
+# Use the PostgreSQL specific adapter, with Sequel's connection pool
+DB = Sequel.connect(ENV['DATABASE_URL'])
+Ensql.adapter = Ensql::PostgresAdapter.new Ensql::SequelAdapter.pool(DB)
+
+# Use the PostgreSQL specific adapter, with our own thread-safe connection pool
+Ensql.adapter = Ensql::PostgresAdapter.pool { PG.connect ENV['DATABASE_URL'] }
 ```
+You can also supply your own adapter (see [the API docs](https://rubydoc.info/gems/ensql/Ensql/Adapter) for details of the interface).
+
 
 SQL can be supplied directly or read from a file. You're encouraged to organise all but the most trivial statements in
 their own *.sql files, for the reasons outlined above. You can organise them in whatever way makes most sense for your
@@ -178,16 +192,14 @@ Ensql.run('TRUNCATE logs') # same thing
 - Maybe we could use type hinting like `%{param:pgarray}` to indicated how to serialise the object as a literal.
 
 - Detecting the database and switching to a db specific adapters. This allows us to be more efficient and optimise some
-  literals in a database specific format, e.g. postgres array literals.
+  literals in a database specific format, e.g. PostgreSQL array literals.
 
-- Handling specific connections rather than just grabbing the default.
-
-- Establishing connections directly.
+- Proper single-row mode support for the pg adapter
 
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You'll
-need a running postgres database. You can also run `bin/console` for an interactive prompt that will allow you to
+need a running PostgreSQL database. You can also run `bin/console` for an interactive prompt that will allow you to
 experiment.
 
 To install this gem onto your local machine, run `bundle exec rake install`.
