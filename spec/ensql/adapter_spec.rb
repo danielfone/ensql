@@ -1,19 +1,15 @@
 # frozen_string_literal: true
 require 'ensql/adapter'
-require 'sequel'
-require 'active_record'
 
 RSpec.describe 'Ensql.adapter' do
 
-  before(:context) do
-    Sequel::DATABASES.clear
-    Sequel.connect('sqlite:/')
-  end
-
   it 'autodetects Sequel and ActiveRecord' do
+    setup_sequel
     Ensql.adapter = nil
     expect(Ensql.adapter).to be_a Ensql::SequelAdapter
     hide_const 'Sequel'
+
+    setup_active_record
     Ensql.adapter = nil
     expect(Ensql.adapter).to be_a Ensql::ActiveRecordAdapter
   end
@@ -26,11 +22,14 @@ RSpec.describe 'Ensql.adapter' do
   end
 
   it 'can be manually set' do
-    expect { Ensql.adapter = :foo }
-      .to change { Ensql.adapter }.to :foo
+    Ensql.adapter = :foo
+    expect { Ensql.adapter = :bar }
+      .to change { Ensql.adapter }.from(:foo).to(:bar)
   end
 
   it 'warns if using deprecated adapters' do
+    require 'ensql/active_record_adapter'
+    require 'ensql/sequel_adapter'
     expect { Ensql.adapter = Ensql::ActiveRecordAdapter }.to output(/deprecated/).to_stderr
     expect { Ensql.adapter = Ensql::SequelAdapter }.to output(/deprecated/).to_stderr
   end
@@ -56,6 +55,17 @@ RSpec.describe 'Ensql.adapter' do
       expect(Ensql.adapter).to eq :foo
     end
 
+  end
+
+  def setup_sequel(connection_string='sqlite:/')
+    require 'sequel'
+    Sequel::DATABASES.clear
+    Sequel.connect(connection_string)
+  end
+
+  def setup_active_record(opts = { adapter: "sqlite3", database: ":memory:" })
+    require 'active_record'
+    ActiveRecord::Base.establish_connection(opts)
   end
 
 end
