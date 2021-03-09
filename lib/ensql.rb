@@ -24,8 +24,6 @@ require_relative "ensql/sql"
 #     Ensql.sql('select * from users where id = %{id}', id: 1).first_row # => { "id" => 1, "email" => "test@example.com" }
 #
 module Ensql
-  # Wrapper for errors raised by Ensql
-  class Error < StandardError; end
 
   class << self
 

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "../ensql"
+require_relative "error"
 
 module Ensql
   #

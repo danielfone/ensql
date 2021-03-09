@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 require 'support/coverage'
 
-
 ENV['TZ'] = 'UTC'
 
 RSpec.configure do |config|
