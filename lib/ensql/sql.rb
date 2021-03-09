@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../ensql"
+require_relative "adapter"
 require_relative "error"
 
 module Ensql

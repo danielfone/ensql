@@ -3,6 +3,49 @@
 require_relative 'error'
 
 module Ensql
+
+  class << self
+    # Get the current connection adapter. If not specified, it will try to
+    # autoload an adapter based on the availability of Sequel or ActiveRecord,
+    # in that order.
+    #
+    # @example
+    #     require 'sequel'
+    #     Ensql.adapter # => Ensql::SequelAdapter.new
+    #     Ensql.adapter = Ensql::ActiveRecordAdapter.new # override adapter
+    #     Ensql.adapter = my_tsql_adapter # supply your own adapter
+    #
+    def adapter
+      Thread.current[:ensql_adapter] || Thread.main[:ensql_adapter] ||= autoload_adapter
+    end
+
+    # Set the connection adapter to use. Must implement the interface defined in
+    # {Ensql::Adapter}. This uses a thread-local variable so adapters can be
+    # switched safely in a multi-threaded web server.
+    def adapter=(adapter)
+      if adapter.is_a?(Module) && (adapter.name == 'Ensql::SequelAdapter' || adapter.name == 'Ensql::ActiveRecordAdapter')
+        warn "Using `#{adapter}` as an adapter is deprecated, use `#{adapter}.new`.", uplevel: 1
+      end
+
+      Thread.current[:ensql_adapter] = adapter
+    end
+
+  private
+
+    def autoload_adapter
+      if defined? Sequel
+        require_relative 'sequel_adapter'
+        SequelAdapter.new
+      elsif defined? ActiveRecord
+        require_relative 'active_record_adapter'
+        ActiveRecordAdapter.new
+      else
+        raise Error, "Couldn't autodetect an adapter, please specify manually."
+      end
+    end
+
+  end
+
   #
   # @abstract Do not use this module directly.
   #

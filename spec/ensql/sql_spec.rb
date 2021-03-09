@@ -7,8 +7,8 @@ RSpec.describe Ensql::SQL do
   before(:context) do
     Sequel::DATABASES.clear
     db = Sequel.connect('sqlite:/')
-    Ensql.adapter = Ensql::SequelAdapter.new(db)
-    Ensql.run 'create table test (a, b)'
+    ADAPTER = Ensql.adapter = Ensql::SequelAdapter.new(db)
+    ADAPTER.run('create table test (a, b)')
   end
 
   context 'with SQL values (1, 2), (3, 4)' do
@@ -41,14 +41,14 @@ RSpec.describe Ensql::SQL do
   context 'inserting two rows' do
     subject(:sql) { described_class.new('insert into test values %{a}, %{b}', a: [1, 2], b: [3, 4]) }
 
-    before { Ensql.run 'delete from test' }
+    before { ADAPTER.run 'delete from test' }
 
     describe '#count' do
       specify { expect(sql.count).to eq 2 }
     end
 
     describe '#run' do
-      let(:count_sql) { Ensql.sql('select count(*) from test') }
+      let(:count_sql) { Ensql::SQL.new('select count(*) from test') }
       specify { expect { sql.run }.to change { count_sql.first_field }.from(0).to(2) }
       specify { expect(sql.run).to be nil }
     end
@@ -118,7 +118,7 @@ RSpec.describe Ensql::SQL do
     describe '%{!fragment} interpolation' do
 
       it 'interpolates without quoting' do
-        expect(interpolate('select * from test %{!order}', order: Ensql.sql('order by a')))
+        expect(interpolate('select * from test %{!order}', order: Ensql::SQL.new('order by a')))
           .to eq 'select * from test order by a'
       end
 
