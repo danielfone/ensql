@@ -50,8 +50,7 @@ module Ensql
       @pool = pool
       @quoter = PG::TextEncoder::QuotedLiteral.new
       @result_type_map = @pool.with { |c| PG::BasicTypeMapForResults.new(c) }
-      @query_type_map = @pool.with { |c| PG::BasicTypeMapForQueries.new(c) }
-      @query_type_map[Date] = PG::TextEncoder::Date.new
+      @query_type_map = @pool.with { |c| build_query_type_map(c) }
     end
 
     # @visibility private
@@ -128,5 +127,33 @@ module Ensql
       coder.is_a?(Symbol) ? @query_type_map.send(coder, value) : coder
     end
 
+    # Ensure encoders are set up for old versions of the pg gem
+    def build_query_type_map(connection)
+      map = PG::BasicTypeMapForQueries.new(connection)
+      map[Date] ||= PG::TextEncoder::Date.new
+      map[Time] ||= PG::TextEncoder::TimestampWithoutTimeZone.new
+      map[Hash] ||= PG::TextEncoder::JSON.new
+      map[BigDecimal] ||= NumericEncoder.new
+      map
+    end
   end
+
+  # PG < 1.1.0 doesn't have a numeric decoder
+  # This is copied from https://github.com/ged/ruby-pg/commit/d4ae41bb8fd447c92ef9c8810ec932acd03e0293
+  # :nocov:
+  unless defined? PG::TextEncoder::Numeric
+    class NumericDecoder < PG::SimpleDecoder
+      def decode(string, tuple=nil, field=nil)
+        BigDecimal(string)
+      end
+    end
+    class NumericEncoder < PG::SimpleEncoder
+      def encode(decimal)
+        decimal.to_s('F')
+      end
+    end
+    private_constant :NumericDecoder, :NumericEncoder
+    PG::BasicTypeRegistry.register_type(0, 'numeric', NumericEncoder, NumericDecoder)
+  end
+  # :nocov:
 end
