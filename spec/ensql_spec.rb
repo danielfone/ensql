@@ -2,6 +2,7 @@
 require 'ensql'
 require 'ensql/sequel_adapter'
 require 'ensql/active_record_adapter'
+require 'ensql/postgres_adapter'
 
 RSpec.describe Ensql do
 
@@ -39,6 +40,9 @@ RSpec.describe Ensql do
     ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
     Ensql.adapter = Ensql::ActiveRecordAdapter.new
     expect { Ensql.run('select * from not_a_table') }.to raise_error ActiveRecord::StatementInvalid
+
+    Ensql.adapter = Ensql::PostgresAdapter.pool { PG.connect host: 'localhost' }
+    expect { Ensql.run('select * from not_a_table') }.to raise_error PG::UndefinedTable
   end
 
   describe '.sql' do
