@@ -1,4 +1,7 @@
 #!/usr/bin/env ruby
+
+# frozen_string_literal: true
+
 #
 # Compare operations performed using each adapter
 #

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 unless ENV["COVERAGE"] == "false"
   require "simplecov"
 

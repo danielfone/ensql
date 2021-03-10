@@ -8,26 +8,26 @@
 Ensql lets you write SQL for your application the safe and simple way. Ditch your ORM and embrace the power and
 simplicity of writing plain SQL again.
 
-  * **Write exactly the SQL you want.** Don't limit your queries to what's in the Rails docs. Composable scopes and
-    dynamic includes can cripple performance for non-trivial queries. Break through the ORM abstraction and unlock the
-    power of your database with well-structured SQL and modern database features.
+* **Write exactly the SQL you want.** Don't limit your queries to what's in the Rails docs. Composable scopes and
+  dynamic includes can cripple performance for non-trivial queries. Break through the ORM abstraction and unlock the
+  power of your database with well-structured SQL and modern database features.
 
-  * **Keep your SQL in its own files.** Just like models or view templates, it makes sense to organise your SQL on its
-    own terms. Storing the queries in their own files encourages better formatted, well commented, literate SQL. It also
-    leverages the syntax highlighting and autocompletion available in your editor. Snippets of HTML scatter through .rb
-    files is an awkward code smell, and SQL is no different.
+* **Keep your SQL in its own files.** Just like models or view templates, it makes sense to organise your SQL on its
+  own terms. Storing the queries in their own files encourages better formatted, well commented, literate SQL. It also
+  leverages the syntax highlighting and autocompletion available in your editor. Snippets of HTML scatter through .rb
+  files is an awkward code smell, and SQL is no different.
 
-  * **Do more with your database.** Having a place to organise clean and readable SQL encourages you to make the most of it.
-    In every project I've worked on I've been able to replace useful amounts of imperative ruby logic with a declarative
-    SQL query, improving performance and reducing the opportunity for type errors and untested branches.
+* **Do more with your database.** Having a place to organise clean and readable SQL encourages you to make the most of it.
+  In every project I've worked on I've been able to replace useful amounts of imperative ruby logic with a declarative
+  SQL query, improving performance and reducing the opportunity for type errors and untested branches.
 
-  * **Safely interpolate user-supplied data.** Every web developer knows the risks of SQL injection. Ensql takes a
-    fail-safe approach to interpolation, leveraging the underlying database adapter to turn ruby objects into properly
-    quoted SQL literals. As long as user-supplied input is passed as parameters, your queries will be safe and
-    well-formed.
+* **Safely interpolate user-supplied data.** Every web developer knows the risks of SQL injection. Ensql takes a
+  fail-safe approach to interpolation, leveraging the underlying database adapter to turn ruby objects into properly
+  quoted SQL literals. As long as user-supplied input is passed as parameters, your queries will be safe and
+  well-formed.
 
-  * **Use your existing database connection.** Ensql works with ActiveRecord or Sequel so you don't need to manage a
-    separate connection to the database.
+* **Use your existing database connection.** Ensql works with ActiveRecord or Sequel so you don't need to manage a
+  separate connection to the database.
 
 ```ruby
 # Run adhoc statements
@@ -51,22 +51,24 @@ current_results = Ensql.load_sql('results/page', results: all_results, page: 2)
 total           = Ensql.load_sql('count', subquery: all_results)
 result = { data: current_results.rows, total: total.first_field }
 ```
-### Further Reading:
+## Further Reading
 
 * [Source Code](https://github.com/danielfone/ensql)
 * [API Documentation](https://rubydoc.info/gems/ensql/Ensql/SQL)
-* [Rubygem](https://rubygems.org/gems/ensql)
+* [Ruby Gem](https://rubygems.org/gems/ensql)
 
 ## Installation
 
 Add this gem to your Gemfile by running:
 
-    $ bundle add ensql
-
+```shell
+bundle add ensql
+```
 Or install it manually with:
 
-    $ gem install ensql
-
+```shell
+gem install ensql
+```
 Ensql requires:
 
 * ruby >= 2.4.0
@@ -101,21 +103,23 @@ SQL can be supplied directly or read from a file. You're encouraged to organise 
 their own *.sql files, for the reasons outlined above. You can organise them in whatever way makes most sense for your
 project, but I've found sorting them into directories based on their purpose works well. For example:
 
-    app/sql
-    ├── analytics
-    │   └── results.sql
-    ├── program_details
-    │   ├── widget_query.sql
-    │   ├── item_query.sql
-    │   ├── organisation_query.sql
-    │   └── test_query.sql
-    ├── reports
-    │   ├── csv_export.sql
-    │   ├── filtered.sql
-    │   └── index.sql
-    ├── redaction.sql
-    ├── count.sql
-    └── set_timeout.sql
+```text
+app/sql
+├── analytics
+│   └── results.sql
+├── program_details
+│   ├── widget_query.sql
+│   ├── item_query.sql
+│   ├── organisation_query.sql
+│   └── test_query.sql
+├── reports
+│   ├── csv_export.sql
+│   ├── filtered.sql
+│   └── index.sql
+├── redaction.sql
+├── count.sql
+└── set_timeout.sql
+```
 
 ### Interpolation
 
@@ -216,7 +220,7 @@ To install this gem onto your local machine, run `bundle exec rake install`.
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/danielfone/ensql.
+Bug reports and pull requests are welcome on GitHub at <https://github.com/danielfone/ensql>.
 
 ## License
 
