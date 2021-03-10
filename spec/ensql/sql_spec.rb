@@ -5,10 +5,9 @@ require "ensql/sql"
 
 RSpec.describe Ensql::SQL do
   before(:context) do
-    Sequel::DATABASES.clear
     db = Sequel.connect("sqlite:/")
-    ADAPTER = Ensql.adapter = Ensql::SequelAdapter.new(db)
-    ADAPTER.run("create table test (a, b)")
+    Ensql.adapter = Ensql::SequelAdapter.new(db)
+    Ensql.adapter.run("create table test (a, b)")
   end
 
   context "with SQL values (1, 2), (3, 4)" do
@@ -41,7 +40,7 @@ RSpec.describe Ensql::SQL do
   context "inserting two rows" do
     subject(:sql) { described_class.new("insert into test values %{a}, %{b}", a: [1, 2], b: [3, 4]) }
 
-    before { ADAPTER.run "delete from test" }
+    before { Ensql.adapter.run "delete from test" }
 
     describe "#count" do
       specify { expect(sql.count).to eq 2 }

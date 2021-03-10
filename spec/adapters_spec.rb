@@ -178,9 +178,9 @@ RSpec.describe "Adapters" do
 
     context "with single-row mode enabled" do
       around do |spec|
-        @DB.stream_all_queries = true
+        @db.stream_all_queries = true
         spec.run
-        @DB.stream_all_queries = false
+        @db.stream_all_queries = false
       end
 
       it "yields the first row much faster" do
