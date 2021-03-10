@@ -3,6 +3,7 @@
 require_relative 'version'
 require_relative 'adapter'
 require_relative 'pool_wrapper'
+require_relative 'error'
 
 # Ensure our optional dependency has a compatible version
 gem 'sequel', Ensql::SUPPORTED_SEQUEL_VERSIONS

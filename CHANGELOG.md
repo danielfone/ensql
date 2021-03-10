@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.6.3.pre] - unreleased
+
+- Eliminates Cyclic dependencies for Error and Ensql.adapter.
+- Tidies specs.
+
 ## [0.6.2] - 2021-03-09
 
 - Adds a specialised adapter for PostgreSQL.
