@@ -3,6 +3,7 @@
 [![Gem Version](https://badge.fury.io/rb/ensql.svg)](https://badge.fury.io/rb/ensql)
 [![Ruby](https://github.com/danielfone/ensql/actions/workflows/specs.yml/badge.svg)](https://github.com/danielfone/ensql/actions/workflows/specs.yml)
 [![Maintainability](https://api.codeclimate.com/v1/badges/a4ab07e1a03c4d1e8043/maintainability)](https://codeclimate.com/github/danielfone/ensql/maintainability)
+[![Ruby Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://github.com/testdouble/standard)
 
 Ensql lets you write SQL for your application the safe and simple way. Ditch your ORM and embrace the power and
 simplicity of writing plain SQL again.
