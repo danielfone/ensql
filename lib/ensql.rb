@@ -3,6 +3,7 @@
 require_relative "ensql/version"
 require_relative "ensql/adapter"
 require_relative "ensql/sql"
+require_relative "ensql/transaction"
 require_relative "ensql/load_sql"
 
 #
