@@ -2,6 +2,7 @@
 
 ## [0.6.3.pre] - unreleased
 
+- Supports transaction flow control using any flavour SQL with `Ensql.transaction` and `Ensql.rollback!`.
 - Eliminates cyclic dependencies for `Error` and `Ensql.adapter`.
 - Tidies specs.
 - Adopts [standardrb](https://github.com/testdouble/standard).

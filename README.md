@@ -5,8 +5,8 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/a4ab07e1a03c4d1e8043/maintainability)](https://codeclimate.com/github/danielfone/ensql/maintainability)
 [![Ruby Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://github.com/testdouble/standard)
 
-Ensql lets you write SQL for your application the safe and simple way. Ditch your ORM and embrace the power and
-simplicity of writing plain SQL again.
+Ensql provides a light-weight wrapper over your existing database connections, letting you write plain SQL for your
+application safely and simply. Ditch your ORM and embrace the power and ease of writing SQL again.
 
 * **Write exactly the SQL you want.** Don't limit your queries to what's in the Rails docs. Composable scopes and
   dynamic includes can cripple performance for non-trivial queries. Break through the ORM abstraction and unlock the
@@ -14,20 +14,20 @@ simplicity of writing plain SQL again.
 
 * **Keep your SQL in its own files.** Just like models or view templates, it makes sense to organise your SQL on its
   own terms. Storing the queries in their own files encourages better formatted, well commented, literate SQL. It also
-  leverages the syntax highlighting and autocompletion available in your editor. Snippets of HTML scatter through .rb
+  leverages the syntax highlighting and autocompletion available in your editor. Snippets of HTML scattered through .rb
   files is an awkward code smell, and SQL is no different.
 
-* **Do more with your database.** Having a place to organise clean and readable SQL encourages you to make the most of it.
-  In every project I've worked on I've been able to replace useful amounts of imperative ruby logic with a declarative
-  SQL query, improving performance and reducing the opportunity for type errors and untested branches.
+* **Do more with your database.** Having a place to organise clean and readable SQL encourages you to make the most of
+  it. In every project I've worked on I've been able to replace substantial amounts of imperative Ruby logic with a
+  declarative SQL query, improving performance and reducing the opportunity for type errors and untested branches.
 
 * **Safely interpolate user-supplied data.** Every web developer knows the risks of SQL injection. Ensql takes a
   fail-safe approach to interpolation, leveraging the underlying database adapter to turn ruby objects into properly
   quoted SQL literals. As long as user-supplied input is passed as parameters, your queries will be safe and
   well-formed.
 
-* **Use your existing database connection.** Ensql works with ActiveRecord or Sequel so you don't need to manage a
-  separate connection to the database.
+* **Use your existing database connection.** As well as using PostrgeSQL connections directly, Ensql can work with
+  ActiveRecord or Sequel so you don't need to manage a separate connection to the database.
 
 ```ruby
 # Run adhoc statements
@@ -97,7 +97,6 @@ Ensql.adapter = Ensql::PostgresAdapter.new Ensql::SequelAdapter.pool(DB)
 Ensql.adapter = Ensql::PostgresAdapter.pool { PG.connect ENV['DATABASE_URL'] }
 ```
 You can also supply your own adapter (see [the API docs](https://rubydoc.info/gems/ensql/Ensql/Adapter) for details of the interface).
-
 
 SQL can be supplied directly or read from a file. You're encouraged to organise all but the most trivial statements in
 their own *.sql files, for the reasons outlined above. You can organise them in whatever way makes most sense for your
@@ -188,6 +187,22 @@ Ensql.sql('DELETE FROM users WHERE email IS NULL').count # 10
 Ensql.sql('TRUNCATE logs').run # => nil
 Ensql.run('TRUNCATE logs') # same thing
 ```
+
+### Transactions
+
+Ensql encourages you to write pure unmediated SQL with very little procedural management. However, transaction blocks
+are the exception to this rule. Any exceptions inside a transaction block will trigger a rollback, otherwise the block
+will be committed. The block uses SQL-standard commands by default, but custom SQL can be supplied.
+
+```ruby
+Ensql.transaction(start: 'BEGIN ISOLATION LEVEL SERIALIZABLE') do
+  do_thing1
+  result = check_thing2
+  Ensql.rollback! unless result
+  do_thing3
+end
+```
+See [the API docs](https://rubydoc.info/gems/ensql/Ensql#transaction-class_method) for details.
 
 ## Things To Improve
 

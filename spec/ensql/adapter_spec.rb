@@ -1,15 +1,16 @@
 # frozen_string_literal: true
 
 require "ensql/adapter"
+require "support/db"
 
 RSpec.describe "Ensql.adapter" do
   it "autodetects Sequel and ActiveRecord" do
-    setup_sequel
+    DB.setup_sequel
     Ensql.adapter = nil
     expect(Ensql.adapter).to be_a Ensql::SequelAdapter
     hide_const "Sequel"
 
-    setup_active_record
+    DB.setup_active_record
     Ensql.adapter = nil
     expect(Ensql.adapter).to be_a Ensql::ActiveRecordAdapter
   end
@@ -53,16 +54,5 @@ RSpec.describe "Ensql.adapter" do
       }.join.value
       expect(Ensql.adapter).to eq :foo
     end
-  end
-
-  def setup_sequel(connection_string = "sqlite:/")
-    require "sequel"
-    Sequel::DATABASES.clear
-    Sequel.connect(connection_string)
-  end
-
-  def setup_active_record(opts = {adapter: "sqlite3", database: ":memory:"})
-    require "active_record"
-    ActiveRecord::Base.establish_connection(opts)
   end
 end
