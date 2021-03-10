@@ -209,6 +209,14 @@ experiment.
 
 To install this gem onto your local machine, run `bundle exec rake install`.
 
+### PR Checklist
+
+- [ ] Confirm the code works locally
+- [ ] Update any relevant documentation
+- [ ] Try to break it
+- [ ] Tests the described behaviour
+- [ ] Add a changelog entry (with version bump if needed)
+
 ### Release Checklist
 
 - [ ] Review changes in master since last release, especially the public API.
