@@ -1,5 +1,5 @@
-unless ENV["COVERAGE"] == 'false'
-  require 'simplecov'
+unless ENV["COVERAGE"] == "false"
+  require "simplecov"
 
   SimpleCov.start do
     enable_coverage :branch

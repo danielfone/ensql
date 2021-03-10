@@ -1,7 +1,8 @@
 # frozen_string_literal: true
-require 'support/coverage'
 
-ENV['TZ'] = 'UTC'
+require "support/coverage"
+
+ENV["TZ"] = "UTC"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -15,5 +16,4 @@ RSpec.configure do |config|
   end
 
   config.order = :random
-
 end

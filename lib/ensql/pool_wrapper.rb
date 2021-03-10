@@ -3,7 +3,6 @@
 module Ensql
   # Wrap a 3rd-party connection pool with a standard interface. Connections can be checked out by {with}
   class PoolWrapper
-
     # Wraps a block for accessing a connection from a pool.
     #
     #     PoolWrapper.new do |client_block|
