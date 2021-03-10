@@ -11,4 +11,10 @@ module DB
     require "active_record"
     ActiveRecord::Base.establish_connection(connection)
   end
+
+  def self.configure_sequel_adapter(connection = "sqlite:/")
+    require "ensql/adapter"
+    require "ensql/sequel_adapter"
+    Ensql.adapter = Ensql::SequelAdapter.new(setup_sequel(connection))
+  end
 end

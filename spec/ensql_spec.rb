@@ -51,18 +51,6 @@ RSpec.describe Ensql do
     end
   end
 
-  describe ".load_sql" do
-    before { Ensql.sql_path = "spec/sql" }
-
-    it "interpolates into the sql at the configured path" do
-      expect(Ensql.load_sql(:select_some, limit: 2).to_sql).to eq "select * from test limit 2\n"
-    end
-
-    it "fails clearly for missing files" do
-      expect { Ensql.load_sql(:missing_file) }.to raise_error including("spec/sql/missing_file.sql")
-    end
-  end
-
   describe ".run" do
     it "executes the interpolated SQL" do
       expect {
