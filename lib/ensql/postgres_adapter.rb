@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require_relative 'version'
-require_relative 'adapter'
+require_relative "version"
+require_relative "adapter"
 
-gem 'pg', Ensql::SUPPORTED_PG_VERSIONS
-require 'pg'
-require 'connection_pool'
+gem "pg", Ensql::SUPPORTED_PG_VERSIONS
+require "pg"
+require "connection_pool"
 
 module Ensql
   # Wraps a pool of PG connections to implement the {Adapter} interface. The
@@ -61,7 +61,7 @@ module Ensql
     # @visibility private
     def literalize(value)
       case value
-      when NilClass then 'NULL'
+      when NilClass then "NULL"
       when Numeric, TrueClass, FalseClass then value.to_s
       when String then @quoter.encode(value)
       else
@@ -92,7 +92,7 @@ module Ensql
 
     # @visibility private
     def fetch_each_row(sql, &block)
-      return to_enum(:fetch_each_row, sql) unless block_given?
+      return to_enum(:fetch_each_row, sql) unless block
 
       fetch_result(sql) { |res| res.each(&block) }
     end
@@ -102,7 +102,7 @@ module Ensql
       fetch_result(sql, &:to_a)
     end
 
-  private
+    private
 
     def fetch_result(sql)
       execute(sql) do |res|
@@ -117,7 +117,7 @@ module Ensql
 
     # Use PG's built-in type mapping to serialize objects into SQL strings.
     def serialize(value)
-      coder = encoder_for(value) or raise TypeError, "No SQL serializer for #{value.class}"
+      (coder = encoder_for(value)) || raise(TypeError, "No SQL serializer for #{value.class}")
       coder.encode(value)
     end
 
@@ -143,17 +143,18 @@ module Ensql
   # :nocov:
   unless defined? PG::TextEncoder::Numeric
     class NumericDecoder < PG::SimpleDecoder
-      def decode(string, tuple=nil, field=nil)
+      def decode(string, tuple = nil, field = nil)
         BigDecimal(string)
       end
     end
+
     class NumericEncoder < PG::SimpleEncoder
       def encode(decimal)
-        decimal.to_s('F')
+        decimal.to_s("F")
       end
     end
     private_constant :NumericDecoder, :NumericEncoder
-    PG::BasicTypeRegistry.register_type(0, 'numeric', NumericEncoder, NumericDecoder)
+    PG::BasicTypeRegistry.register_type(0, "numeric", NumericEncoder, NumericDecoder)
   end
   # :nocov:
 end

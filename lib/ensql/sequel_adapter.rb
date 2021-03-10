@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require_relative 'version'
-require_relative 'adapter'
-require_relative 'pool_wrapper'
-require_relative 'error'
+require_relative "version"
+require_relative "adapter"
+require_relative "pool_wrapper"
+require_relative "error"
 
 # Ensure our optional dependency has a compatible version
-gem 'sequel', Ensql::SUPPORTED_SEQUEL_VERSIONS
-require 'sequel'
+gem "sequel", Ensql::SUPPORTED_SEQUEL_VERSIONS
+require "sequel"
 
 module Ensql
   #
@@ -41,7 +41,7 @@ module Ensql
 
     # Support deprecated class method interface
     class << self
-      require 'forwardable'
+      require "forwardable"
       extend Forwardable
 
       delegate [:literalize, :run, :fetch_count, :fetch_each_row, :fetch_rows, :fetch_first_column, :fetch_first_field, :fetch_first_row] => :new
@@ -94,13 +94,12 @@ module Ensql
       db.literal(value)
     end
 
-  private
+    private
 
     attr_reader :db
 
     def first_configured_database
-      Sequel::DATABASES.first or raise Error, "no database found in Sequel::DATABASES"
+      Sequel::DATABASES.first || raise(Error, "no database found in Sequel::DATABASES")
     end
-
   end
 end

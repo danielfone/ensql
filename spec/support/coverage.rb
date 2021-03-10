@@ -1,5 +1,7 @@
-unless ENV["COVERAGE"] == 'false'
-  require 'simplecov'
+# frozen_string_literal: true
+
+unless ENV["COVERAGE"] == "false"
+  require "simplecov"
 
   SimpleCov.start do
     enable_coverage :branch

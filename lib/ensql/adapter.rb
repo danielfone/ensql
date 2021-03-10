@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
-require_relative 'error'
+require_relative "error"
 
 module Ensql
-
   class << self
     # Get the current connection adapter. If not specified, it will try to
     # autoload an adapter based on the availability of Sequel or ActiveRecord,
@@ -23,27 +22,26 @@ module Ensql
     # {Ensql::Adapter}. This uses a thread-local variable so adapters can be
     # switched safely in a multi-threaded web server.
     def adapter=(adapter)
-      if adapter.is_a?(Module) && (adapter.name == 'Ensql::SequelAdapter' || adapter.name == 'Ensql::ActiveRecordAdapter')
+      if adapter.is_a?(Module) && (adapter.name == "Ensql::SequelAdapter" || adapter.name == "Ensql::ActiveRecordAdapter")
         warn "Using `#{adapter}` as an adapter is deprecated, use `#{adapter}.new`.", uplevel: 1
       end
 
       Thread.current[:ensql_adapter] = adapter
     end
 
-  private
+    private
 
     def autoload_adapter
       if defined? Sequel
-        require_relative 'sequel_adapter'
+        require_relative "sequel_adapter"
         SequelAdapter.new
       elsif defined? ActiveRecord
-        require_relative 'active_record_adapter'
+        require_relative "active_record_adapter"
         ActiveRecordAdapter.new
       else
         raise Error, "Couldn't autodetect an adapter, please specify manually."
       end
     end
-
   end
 
   #
@@ -54,7 +52,6 @@ module Ensql
   # that can be improved in the adapters.
   #
   module Adapter
-
     # @!group 1. Interface Methods
 
     # @!method literalize(value)
@@ -108,7 +105,6 @@ module Ensql
 
     # @!group 2. Predefined Methods
 
-
     # Execute the query and return only the first row of the result.
     # @return <Hash>
     def fetch_first_row(sql)
@@ -125,6 +121,5 @@ module Ensql
     def fetch_first_field(sql)
       fetch_first_row(sql)&.values&.first
     end
-
   end
 end

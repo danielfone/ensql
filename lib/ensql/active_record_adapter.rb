@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require_relative 'version'
-require_relative 'adapter'
-require_relative 'pool_wrapper'
+require_relative "version"
+require_relative "adapter"
+require_relative "pool_wrapper"
 
 # Ensure our optional dependency has a compatible version
-gem 'activerecord', Ensql::SUPPORTED_ACTIVERECORD_VERSIONS
-require 'active_record'
+gem "activerecord", Ensql::SUPPORTED_ACTIVERECORD_VERSIONS
+require "active_record"
 
 module Ensql
   #
@@ -43,7 +43,7 @@ module Ensql
 
     # Support deprecated class method interface
     class << self
-      require 'forwardable'
+      require "forwardable"
       extend Forwardable
 
       delegate [:literalize, :run, :fetch_count, :fetch_each_row, :fetch_rows, :fetch_first_column, :fetch_first_field, :fetch_first_row] => :new
@@ -61,7 +61,7 @@ module Ensql
 
     # @visibility private
     def fetch_each_row(sql, &block)
-      return to_enum(:fetch_each_row, sql) unless block_given?
+      return to_enum(:fetch_each_row, sql) unless block
 
       result = with_connection { |c| c.exec_query(sql) }
       # AR populates `column_types` with the types of any columns that haven't
@@ -90,7 +90,7 @@ module Ensql
       with_connection { |c| c.quote(value) }
     end
 
-  private
+    private
 
     def with_connection(&block)
       @base.connection_pool.with_connection(&block)

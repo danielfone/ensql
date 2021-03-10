@@ -54,9 +54,8 @@ module Ensql
   #   # SELECT * FROM users ORDER BY name asc
   #
   class SQL
-
     # @!visibility private
-    def initialize(sql, params={}, name='SQL')
+    def initialize(sql, params = {}, name = "SQL")
       @sql = sql
       @name = name.to_s
       @params = params
@@ -107,14 +106,14 @@ module Ensql
       interpolate(sql, params)
     end
 
-  private
+    private
 
     attr_reader :sql, :params, :name
 
-    NESTED_LIST  = /%{(\w+)\((.+)\)}/m
-    LIST         = /%{\((\w+)\)}/
+    NESTED_LIST = /%{(\w+)\((.+)\)}/m
+    LIST = /%{\((\w+)\)}/
     SQL_FRAGMENT = /%{!(\w+)}/
-    LITERAL      = /%{(\w+)}/
+    LITERAL = /%{(\w+)}/
 
     def interpolate(sql, params)
       params = params.transform_keys(&:to_s)
@@ -133,13 +132,13 @@ module Ensql
       Array(array)
         .map { |attrs| interpolate(nested_sql, Hash(attrs)) }
         .map { |sql| "(#{sql})" }
-        .join(', ')
+        .join(", ")
     end
 
     def interpolate_list(array)
-      return '(NULL)' if Array(array).empty?
+      return "(NULL)" if Array(array).empty?
 
-      '(' + Array(array).map { |v| literalize v }.join(', ') + ')'
+      "(" + Array(array).map { |v| literalize v }.join(", ") + ")"
     end
 
     def interpolate_sql(sql)
@@ -159,6 +158,5 @@ module Ensql
     def adapter
       Ensql.adapter
     end
-
   end
 end

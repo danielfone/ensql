@@ -2,8 +2,9 @@
 
 ## [0.6.3.pre] - unreleased
 
-- Eliminates Cyclic dependencies for Error and Ensql.adapter.
+- Eliminates cyclic dependencies for `Error` and `Ensql.adapter`.
 - Tidies specs.
+- Adopts [standardrb](https://github.com/testdouble/standard).
 
 ## [0.6.2] - 2021-03-09
 

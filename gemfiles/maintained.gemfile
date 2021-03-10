@@ -6,16 +6,16 @@
 
 source "https://rubygems.org"
 
-ruby '~> 2.5.0'
+ruby "~> 2.5.0"
 
 # Specify your gem's dependencies in ensql.gemspec
-gemspec path: '../'
+gemspec path: "../"
 
 # Optional runtime dependencies
 group :adapters do
-  require_relative '../lib/ensql/version'
+  require_relative "../lib/ensql/version"
   gem "activerecord", "~> 5.2.0"
-  gem "sequel",       "~> 5.9"
+  gem "sequel", "~> 5.9"
   gem "sqlite3"
   gem "pg"
   gem "sequel_pg"
