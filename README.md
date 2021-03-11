@@ -51,7 +51,7 @@ current_results = Ensql.load_sql('results/page', results: all_results, page: 2)
 total           = Ensql.load_sql('count', subquery: all_results)
 result = { data: current_results.rows, total: total.first_field }
 ```
-## Further Reading
+Links:
 
 * [Source Code](https://github.com/danielfone/ensql)
 * [API Documentation](https://rubydoc.info/gems/ensql/Ensql/SQL)
