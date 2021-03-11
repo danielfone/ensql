@@ -25,4 +25,31 @@ RSpec.describe Ensql::PostgresAdapter do
       expect(adapter.fetch_first_field("select #{sql}")).to eq v
     end
   end
+
+  it "supports round-trips with custom de/encoding" do
+    PG::BasicTypeRegistry.register_type(0, "macaddr", MacaddrEncoder, MacaddrDecoder)
+    adapter.query_type_map[MACAddr] = MacaddrEncoder.new
+
+    mac = MACAddr.new("08:00:2b:01:02:03")
+    expect(adapter.fetch_first_field("select cast(#{adapter.literalize(mac)} as macaddr)")).to eq mac
+  end
+end
+
+# Dummy MAC address struct
+MACAddr = Struct.new(:string) do
+  def digits
+    string.tr(":", "")
+  end
+end
+
+class MacaddrDecoder < PG::SimpleDecoder
+  def decode(string, tuple = nil, field = nil)
+    MACAddr.new(string)
+  end
+end
+
+class MacaddrEncoder < PG::SimpleEncoder
+  def encode(ip_addr)
+    ip_addr.digits
+  end
 end
