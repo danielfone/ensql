@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    ensql (0.6.3.pre)
+    ensql (0.6.3)
       connection_pool (>= 0.9.3, < 3)
 
 GEM

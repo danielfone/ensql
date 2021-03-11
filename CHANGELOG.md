@@ -1,6 +1,6 @@
 # Change Log
 
-## [0.6.3.pre] - unreleased
+## [0.6.3] - 2021-03-11
 
 - Supports transaction flow control using any flavour SQL with `Ensql.transaction` and `Ensql.rollback!`.
 - Eliminates cyclic dependencies for `Error` and `Ensql.adapter`.
