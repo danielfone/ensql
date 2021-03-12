@@ -1,6 +1,6 @@
 # Change Log
 
-## [0.6.4.pre] - unreleased
+## [0.6.4] - unreleased
 
 - Exposes `PostgresAdapter#query_type_map` to extend PG type mapping.
 - Defers building type maps for PostgreSQL connections, to avoid bugs with ActiveRecord.
