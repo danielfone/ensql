@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.6.4.pre] - unreleased
+
+- Exposes `PostgresAdapter#query_type_map` to extend PG type mapping.
+- Defers building type maps for PostgreSQL connections, to avoid bugs with ActiveRecord.
+
 ## [0.6.3] - 2021-03-11
 
 - Supports transaction flow control using any flavour SQL with `Ensql.transaction` and `Ensql.rollback!`.

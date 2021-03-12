@@ -14,7 +14,8 @@ module Ensql
   # [connection_pool gem](https://github.com/mperham/connection_pool).
   #
   # This adapter is much faster and offers much better PostgreSQL specific
-  # parameter interpolation than the framework adapters.
+  # parameter interpolation than the framework adapters. See {query_type_map}
+  # for options.
   #
   # @example
   #     # Use with ActiveRecord's connection pool
@@ -49,8 +50,30 @@ module Ensql
     def initialize(pool)
       @pool = pool
       @quoter = PG::TextEncoder::QuotedLiteral.new
-      @result_type_map = @pool.with { |c| PG::BasicTypeMapForResults.new(c) }
-      @query_type_map = @pool.with { |c| build_query_type_map(c) }
+    end
+
+    # A map for encoding Ruby objects into PostgreSQL literals based on their
+    # class. You can add additional class mappings to suit your needs. See
+    # https://rubydoc.info/gems/pg/PG/BasicTypeRegistry for details of adding
+    # your own encoders and decoders.
+    #
+    #     # Encode any `IPAddr` objects for interpolation using the `InetEncoder`.
+    #     Ensql.adapter.query_type_map[IPAddr] = InetEncoder.new
+    #
+    #     # Deserialize `inet` columns as IPAddr objects.
+    #     PG::BasicTypeRegistry.register_type(0, 'inet', InetEncoder, InetDecoder)
+    #
+    # @return [PG::TypeMapByClass]
+    def query_type_map
+      @query_type_map ||= @pool.with do |connection|
+        map = PG::BasicTypeMapForQueries.new(connection)
+        # Ensure encoders are set up for old versions of the pg gem
+        map[Date] ||= PG::TextEncoder::Date.new
+        map[Time] ||= PG::TextEncoder::TimestampWithoutTimeZone.new
+        map[Hash] ||= PG::TextEncoder::JSON.new
+        map[BigDecimal] ||= NumericEncoder.new
+        map
+      end
     end
 
     # @visibility private
@@ -106,7 +129,7 @@ module Ensql
 
     def fetch_result(sql)
       execute(sql) do |res|
-        res.type_map = @result_type_map
+        res.type_map = result_type_map
         yield res
       end
     end
@@ -122,19 +145,13 @@ module Ensql
     end
 
     def encoder_for(value)
-      coder = @query_type_map[value.class]
+      coder = query_type_map[value.class]
       # Handle the weird case where coder can be a method name
-      coder.is_a?(Symbol) ? @query_type_map.send(coder, value) : coder
+      coder.is_a?(Symbol) ? query_type_map.send(coder, value) : coder
     end
 
-    # Ensure encoders are set up for old versions of the pg gem
-    def build_query_type_map(connection)
-      map = PG::BasicTypeMapForQueries.new(connection)
-      map[Date] ||= PG::TextEncoder::Date.new
-      map[Time] ||= PG::TextEncoder::TimestampWithoutTimeZone.new
-      map[Hash] ||= PG::TextEncoder::JSON.new
-      map[BigDecimal] ||= NumericEncoder.new
-      map
+    def result_type_map
+      @result_type_map ||= @pool.with { |c| PG::BasicTypeMapForResults.new(c) }
     end
   end
 
