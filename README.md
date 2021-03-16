@@ -54,7 +54,7 @@ result = { data: current_results.rows, total: total.first_field }
 Links:
 
 * [Source Code](https://github.com/danielfone/ensql)
-* [API Documentation](https://rubydoc.info/gems/ensql/Ensql/SQL)
+* [API Documentation](https://rubydoc.info/gems/ensql)
 * [Ruby Gem](https://rubygems.org/gems/ensql)
 
 ## Installation
