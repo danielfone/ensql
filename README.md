@@ -123,15 +123,15 @@ app/sql
 ### Interpolation
 
 All interpolation is marked by `%{}` placeholders in the SQL. This is the only place that user-supplied input should be
-allowed. Only various forms of literal interpolation are supported - identifier interpolation is not supported at this
-stage.
+allowed. Only literal interpolation is supported - identifier interpolation is not supported at this stage.
 
-There are 4 types of interpolation:
+There are 3 types of safe (correctly quoted/escaped) interpolation:
 
-  1. `%{param}` interpolates a Ruby object as a SQL literal.
-  2. `%{(param)}` expands an array into a list of SQL literals.
-  3. `%{param( nested sql )}` interpolates the nested sql with each hash in an array.
-  4. `%{!sql_param}` only interpolates Ensql::SQL objects as SQL fragments.
+  1. `%{param}` interpolates a Ruby object as a single SQL literal.
+  2. `%{(param)}` expands a Ruby Array into a list of SQL literals.
+  3. `%{param( nested sql )}` interpolates an Array of Hashes into the nested sql with each hash in an array.
+
+In addition you can interpolate raw SQL with `%{!sql_param}`. It's up to you to ensure this is safe!
 
 ```ruby
 # Interpolate a literal
@@ -148,7 +148,7 @@ Ensql.sql('INSERT INTO users (name, created_at) VALUES %{users( %{name}, now() )
 )
 # INSERT INTO users VALUES ('Claudia Buss', now()), ('Lundy L''Anglais', now())
 
-# Interpolate a SQL fragement
+# Interpolate a raw SQL fragment without quoting. Use with care!
 Ensql.sql('SELECT * FROM users ORDER BY %{!orderby}', orderby: Ensql.sql('name asc'))
 # SELECT * FROM users ORDER BY name asc
 ```
