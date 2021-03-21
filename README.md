@@ -6,7 +6,7 @@
 [![Ruby Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://github.com/testdouble/standard)
 
 Ensql provides a light-weight wrapper over your existing database connections, letting you write plain SQL for your
-application safely and simply. Ditch your ORM and embrace the power and ease of writing SQL again.
+application safely and simply. Escape your ORM and embrace the power and ease of writing SQL again.
 
 * **Write exactly the SQL you want.** Don't limit your queries to what's in the Rails docs. Composable scopes and
   dynamic includes can cripple performance for non-trivial queries. Break through the ORM abstraction and unlock the
