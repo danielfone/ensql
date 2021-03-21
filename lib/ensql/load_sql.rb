@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "sql"
+require_relative "error"
 
 module Ensql
   class << self
@@ -31,6 +32,8 @@ module Ensql
     def load_sql(name, params = {})
       path = File.join(sql_path, "#{name}.sql")
       SQL.new(File.read(path), params, name)
+    rescue Errno::ENOENT
+      raise Error, "couldn't load SQL from file '#{path}' (sql_path: '#{sql_path}')"
     end
   end
 end
