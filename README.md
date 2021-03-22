@@ -6,7 +6,7 @@
 [![Ruby Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://github.com/testdouble/standard)
 
 Ensql provides a light-weight wrapper over your existing database connections, letting you write plain SQL for your
-application safely and simply. Ditch your ORM and embrace the power and ease of writing SQL again.
+application safely and simply. Escape your ORM and embrace the power and ease of writing SQL again.
 
 * **Write exactly the SQL you want.** Don't limit your queries to what's in the Rails docs. Composable scopes and
   dynamic includes can cripple performance for non-trivial queries. Break through the ORM abstraction and unlock the
@@ -30,13 +30,11 @@ application safely and simply. Ditch your ORM and embrace the power and ease of 
   ActiveRecord or Sequel so you don't need to manage a separate connection to the database.
 
 ```ruby
-# Run adhoc statements
-Ensql.run("SET TIME ZONE 'UTC'")
+# Safely interpolate parameters into adhoc statements with correct quoting and escaping.
+Ensql.run("INSERT INTO users (email) VALUES (%{email})", email: params[:email])
+Ensql.sql("DELETE FROM logs WHERE timestamp < %{expiry}", expiry: 1.month.ago).count # => 100
 
-# Run adhoc D/U/I statements and get the affected row count
-Ensql.sql('DELETE FROM logs WHERE timestamp < %{expiry}', expiry: 1.month.ago).count # => 100
-
-# Organise your SQL and fetch results as convenient Ruby primitives
+# Organise your SQL and fetch results as convenient Ruby primitives.
 Ensql.sql_path = 'app/sql' # Defaults to './sql'. This can be set in an initializer or similar.
 Ensql.load_sql('customers/revenue_report', params).rows # => [{ "customer_id" => 100, "revenue" => 1000}, … ]
 
@@ -123,15 +121,15 @@ app/sql
 ### Interpolation
 
 All interpolation is marked by `%{}` placeholders in the SQL. This is the only place that user-supplied input should be
-allowed. Only various forms of literal interpolation are supported - identifier interpolation is not supported at this
-stage.
+allowed. Only literal interpolation is supported - identifier interpolation is not supported at this stage.
 
-There are 4 types of interpolation:
+There are 3 types of safe (correctly quoted/escaped) interpolation:
 
-  1. `%{param}` interpolates a Ruby object as a SQL literal.
-  2. `%{(param)}` expands an array into a list of SQL literals.
-  3. `%{param( nested sql )}` interpolates the nested sql with each hash in an array.
-  4. `%{!sql_param}` only interpolates Ensql::SQL objects as SQL fragments.
+  1. `%{param}` interpolates a Ruby object as a single SQL literal.
+  2. `%{(param)}` expands a Ruby Array into a list of SQL literals.
+  3. `%{param( nested sql )}` interpolates an Array of Hashes into the nested sql with each hash in an array.
+
+In addition you can interpolate raw SQL with `%{!sql_param}`. It's up to you to ensure this is safe!
 
 ```ruby
 # Interpolate a literal
@@ -148,7 +146,7 @@ Ensql.sql('INSERT INTO users (name, created_at) VALUES %{users( %{name}, now() )
 )
 # INSERT INTO users VALUES ('Claudia Buss', now()), ('Lundy L''Anglais', now())
 
-# Interpolate a SQL fragement
+# Interpolate a raw SQL fragment without quoting. Use with care!
 Ensql.sql('SELECT * FROM users ORDER BY %{!orderby}', orderby: Ensql.sql('name asc'))
 # SELECT * FROM users ORDER BY name asc
 ```

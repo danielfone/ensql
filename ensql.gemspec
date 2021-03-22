@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.email = ["daniel@fone.net.nz"]
 
   spec.summary = "Write SQL the safe and simple way"
-  spec.description = "Ditch your ORM and embrace the power and simplicity of writing plain SQL again."
+  spec.description = "Escape your ORM and embrace the power and simplicity of writing plain SQL again."
   spec.homepage = "https://github.com/danielfone/ensql"
   spec.license = "MIT"
   spec.required_ruby_version = Gem::Requirement.new(">= 2.4.0")
