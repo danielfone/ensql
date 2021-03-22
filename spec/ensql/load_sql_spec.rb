@@ -14,6 +14,6 @@ RSpec.describe ".load_sql" do
   end
 
   it "fails clearly for missing files" do
-    expect { Ensql.load_sql(:missing_file) }.to raise_error including("spec/sql/missing_file.sql")
+    expect { Ensql.load_sql(:missing_file) }.to raise_error Ensql::Error, including("spec/sql/missing_file.sql")
   end
 end

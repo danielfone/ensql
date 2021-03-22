@@ -37,7 +37,7 @@ Ensql.run("SET TIME ZONE 'UTC'")
 Ensql.sql('DELETE FROM logs WHERE timestamp < %{expiry}', expiry: 1.month.ago).count # => 100
 
 # Organise your SQL and fetch results as convenient Ruby primitives
-Ensql.sql_path = 'app/sql'
+Ensql.sql_path = 'app/sql' # Defaults to './sql'. This can be set in an initializer or similar.
 Ensql.load_sql('customers/revenue_report', params).rows # => [{ "customer_id" => 100, "revenue" => 1000}, … ]
 
 # Easily retrive results in the simplest shape

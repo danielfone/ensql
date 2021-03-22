@@ -1,6 +1,10 @@
 # Change Log
 
-## [0.6.4] - unreleased
+## [0.6.5.pre] - unreleased
+
+- Raises `Ensql::Error` with a more helpful message when `load_sql` can't find a file.
+
+## [0.6.4] - 2021-03-12
 
 - Exposes `PostgresAdapter#query_type_map` to extend PG type mapping.
 - Defers building type maps for PostgreSQL connections, to avoid bugs with ActiveRecord.
