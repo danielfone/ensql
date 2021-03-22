@@ -30,13 +30,11 @@ application safely and simply. Escape your ORM and embrace the power and ease of
   ActiveRecord or Sequel so you don't need to manage a separate connection to the database.
 
 ```ruby
-# Run adhoc statements
-Ensql.run("SET TIME ZONE 'UTC'")
+# Safely interpolate parameters into adhoc statements with correct quoting and escaping.
+Ensql.run("INSERT INTO users (email) VALUES (%{email})", email: params[:email])
+Ensql.sql("DELETE FROM logs WHERE timestamp < %{expiry}", expiry: 1.month.ago).count # => 100
 
-# Run adhoc D/U/I statements and get the affected row count
-Ensql.sql('DELETE FROM logs WHERE timestamp < %{expiry}', expiry: 1.month.ago).count # => 100
-
-# Organise your SQL and fetch results as convenient Ruby primitives
+# Organise your SQL and fetch results as convenient Ruby primitives.
 Ensql.sql_path = 'app/sql' # Defaults to './sql'. This can be set in an initializer or similar.
 Ensql.load_sql('customers/revenue_report', params).rows # => [{ "customer_id" => 100, "revenue" => 1000}, … ]
 
