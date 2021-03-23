@@ -1,6 +1,6 @@
 # Change Log
 
-## [0.6.5.pre] - unreleased
+## [0.6.5] - 2021-03-24
 
 - Raises `Ensql::Error` with a more helpful message when `load_sql` can't find a file.
 
